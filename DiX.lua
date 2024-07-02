@@ -340,6 +340,7 @@ UserInputService.InputBegan:Connect(function(input, Processed)
 			RunService:BindToRenderStep("Selector", 0 , SelectionRoutine) 
 		else
 			RunService:UnbindFromRenderStep("Selector") 
+			HoverThing.Adornee = nil
 		end
 		
 	elseif input.UserInputType == Enum.UserInputType.MouseButton1 and MouseSelector==true then

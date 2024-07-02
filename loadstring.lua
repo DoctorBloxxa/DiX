@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/DoctorBloxxa/DiX/main/DiX.lua", true))()
