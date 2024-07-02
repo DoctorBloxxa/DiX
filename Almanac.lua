@@ -12,7 +12,8 @@ local function GetApiData()
 	local Method	= (IsStudio and HttpService.GetAsync) or game.HttpGet
 	local Root		= (IsStudio and HttpService) or game
 
-	while retries <= math.huge do
+	repeat
+		
 		sucess, data = pcall(
 			Method, Root,
 			"https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json"
@@ -21,9 +22,9 @@ local function GetApiData()
 		if sucess then
 			return HttpService:JSONDecode(data)
 		end
-
-		game:GetService("RunService").Heartbeat:Wait()
-	end
+		
+		RunService.Heartbeat:Wait()
+	until 
 
 	warn("[Properties++]: ", data)
 end
