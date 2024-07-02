@@ -87,6 +87,8 @@ end
 
 local function CreateExplorer(Parent)
 	if Niggasex then Niggasex.Parent:Remove() end
+	
+	local ExplorerProportions = .6
 
 	local GUI = Instance.new("ScreenGui", Parent)
 	GUI.ResetOnSpawn = false
@@ -95,6 +97,10 @@ local function CreateExplorer(Parent)
 
 	local Explorer = Instance.new("ScrollingFrame", Container)
 	local Constraint = Instance.new("UIListLayout", Explorer)
+	
+	local Properties = Instance.new("ScrollingFrame", Container)
+	local Constraint = Instance.new("UIListLayout", Properties)
+	local PropertySearch = Instance.new("TextBox",Container)
 
 	local ButtonContainer = Instance.new("Frame", Container)
 	local ButtonConstraint = Instance.new("UIGridLayout", ButtonContainer)
@@ -114,12 +120,20 @@ local function CreateExplorer(Parent)
 	Container.BackgroundTransparency = 1
 
 	Explorer.AnchorPoint = Vector2.new(0,1)
-	Explorer.Size = UDim2.new(1,0,.75,-32)
-	Explorer.Position = UDim2.fromScale(0,.75)
+	Explorer.Size = UDim2.new(1,0,ExplorerProportions,-32)
+	Explorer.Position = UDim2.fromScale(0,ExplorerProportions)
 	Explorer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	Explorer.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	Explorer.CanvasSize = UDim2.fromScale(0,0)
 	Explorer.ScrollBarImageColor3 = Colors.Secondary
+	
+	Properties.AnchorPoint = Vector2.new(0,1)
+	Properties.Size = UDim2.new(1,0,1-ExplorerProportions,-32)
+	Properties.Position = UDim2.fromScale(0,1)
+	Properties.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Properties.AutomaticCanvasSize = Enum.AutomaticSize.XY
+	Properties.CanvasSize = UDim2.fromScale(0,0)
+	Properties.ScrollBarImageColor3 = Colors.Secondary
 
 	local DelButton = Button:Clone()
 	DelButton.Parent = ButtonContainer
@@ -155,6 +169,13 @@ local function CreateExplorer(Parent)
 	SearchBar.ClearTextOnFocus = false
 	SearchBar.Position = UDim2.fromScale(1,0)
 	SearchBar.Text = ""
+	
+	PropertySearch.Size = UDim2.new(1,0,0,32)
+	PropertySearch.AnchorPoint = Vector2.new(0,0)
+	PropertySearch.PlaceholderText = "SEARCH"
+	PropertySearch.ClearTextOnFocus = false
+	PropertySearch.Position = UDim2.new(0,0,ExplorerProportions,0)
+	PropertySearch.Text = ""
 
 	SearchBar.FocusLost:Connect(function(Enter)
 		if not Enter then return end
