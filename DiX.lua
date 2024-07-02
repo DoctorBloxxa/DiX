@@ -13,7 +13,7 @@ local LibraryURL = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/main/Alma
 local SpriteData = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/main/Spritesheet.lua" --- This should be the url to the raw code of the library
 
 local Instance 		= (RunService:IsStudio() and require(script:WaitForChild("Instance"))) or HttpService:JSONDecode(game:HttpGet(LibraryURL, true))
-local ResolveTile 	= (RunService:IsStudio() and require(script:WaitForChild("Decals"))) or HttpService:JSONDecode(game:HttpGet(LibraryURL, true))
+local ResolveTile 	= (RunService:IsStudio() and require(script:WaitForChild("Decals"))) or HttpService:JSONDecode(game:HttpGet(SpriteData, true))
 
 local HoverThing = Instance.new("Highlight", Storage)
 local Holobolo6Billion = RaycastParams.new()
