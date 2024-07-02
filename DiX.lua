@@ -249,7 +249,7 @@ function CreateItem(Class, Parent)
 	Image.Size = UDim2.fromOffset(16,16)
 	Image.Image = Spritesheet
 	Image.ImageRectSize = Vector2.new(16,16)
-	Image.ImageRectOffset = Vector2.new(1,0)*16*(SpriteData[Class.ClassName] or 0)
+	Image.ImageRectOffset = Vector2.new(1,0)*16*(ResolveTile[Class.ClassName] or 0)
 	Image.BorderSizePixel = 0
 	Image.BackgroundTransparency = 1
 
