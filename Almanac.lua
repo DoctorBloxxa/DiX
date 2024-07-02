@@ -12,7 +12,7 @@ local function GetApiData()
 	local Method	= (IsStudio and HttpService.GetAsync) or game.HttpGet
 	local Root		= (IsStudio and HttpService) or game
 
-	while retries <= 3 do
+	while retries <= math.huge do
 		sucess, data = pcall(
 			Method, Root,
 			"https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json"
@@ -22,28 +22,39 @@ local function GetApiData()
 			return HttpService:JSONDecode(data)
 		end
 
-		RunService.Heartbeat:Wait()
+		game:GetService("RunService").Heartbeat:Wait()
 	end
 
-	warn("[Properties+ Http Error]: ", data)
+	warn("[Properties++]: ", data)
 end
 
 local Classes = {}
 
 local function CreatePropertiesForClasses()
 	local HttpData = GetApiData()
-
 	for _, Class in pairs(HttpData.Classes) do
-
 		local Things = {
 			Property 	=	{},
 			Function 	= 	{},
 			Event		=	{},
 			Callback	=	{},
+			Categorized =   {},
 		}
 
 		for _, Stuff in pairs(Class.Members) do
 			Things[Stuff.MemberType][Stuff.Name] = Stuff
+		end
+		
+		for _, Property in pairs(Things.Property) do
+			Things.Categorized[Property.Category] = true
+		end
+		
+		for Category, _ in pairs(Things.Categorized) do
+			Things.Categorized[Category] = {}
+		end
+		
+		for _, Property in pairs(Things.Property) do
+			Things.Categorized[Property.Category][Property.Name] = Property
 		end
 
 		Classes[Class.Name] = {
@@ -55,24 +66,26 @@ local function CreatePropertiesForClasses()
 			Methods		= Things.Function,
 			Events		= Things.Event,
 			Callbacks	= Things.Callback,
+			
+			CategorizedProperties = Things.Categorized,
 		}
 	end
-	
+
 	IsAPILoaded = true
 	APILoaded:Fire()
+	APILoaded:Remove()
 end
 
 task.spawn(CreatePropertiesForClasses)
 
 local Properties = {}
 
-function Properties:GetProperties(instance: string | any)
+function Properties:GetProperties(instance: Instance | any)
 	if not IsAPILoaded then
 		APILoaded.Event:Wait()
-		APILoaded:Remove()
 	end
 
-	return Classes[tostring(instance)]
+	return Classes[instance.ClassName]
 end
 
 function Properties:ReadEnum(enum: Enum)
