@@ -1,6 +1,7 @@
 local User = game:GetService("Players").LocalPlayer
 local Mouse = User:GetMouse()
 local Niggasex;
+local Kokot;
 local ContentProvider = game:GetService("ContentProvider")
 local Spritesheet = "rbxasset://textures/ClassImages.png"
 local UserInputService = game:GetService("UserInputService")
@@ -15,14 +16,15 @@ local SpriteData = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/main/Spri
 local Instance 		= (RunService:IsStudio() and require(script:WaitForChild("Instance"))) 	or loadstring(game:HttpGet(LibraryURL, true))()
 local ResolveTile 	= (RunService:IsStudio() and require(script:WaitForChild("Decals"))) 	or loadstring(game:HttpGet(SpriteData, true))()
 
-local HoverThing = Instance.new("Highlight", Storage)
 local Holobolo6Billion = RaycastParams.new()
+local HoverThing = {};
+local SelectionConstructor;
 
 local MouseSelector = false
 
 local Colors = {
 	Primary 		= Color3.new(0.917647, 0.917647, 0.917647),
-	Secondary 		= Color3.new(0.882353, 0, 1),
+	Secondary 		= Color3.new(0.596078, 0.596078, 0.596078),
 	SoftSelected 	= Color3.new(0.364706, 0.556863, 1),
 	Selected 		= Color3.new(0.52549, 0.729412, 1),
 	Text			= Color3.new(0, 0, 0),
@@ -33,8 +35,6 @@ Colors.SoftSelected = Colors.Primary:Lerp(Colors.SoftSelected, .25)
 Holobolo6Billion.FilterType = Enum.RaycastFilterType.Exclude
 Holobolo6Billion.IgnoreWater = true
 
-HoverThing.OutlineColor = Color3.fromRGB(178,229,255)
-HoverThing.FillTransparency = 1
 
 local ReadBack = {
 
@@ -51,6 +51,44 @@ local Adornments = {
 local SearchResult = {
 
 };
+
+function SelectionMode(Mode: number | any)
+	if type(HoverThing)~="table" then HoverThing:Remove() end
+	if Mode == 1 then
+		HoverThing = Instance.new("Highlight", Storage)
+		HoverThing.OutlineColor = Color3.fromRGB(178,229,255)
+		HoverThing.FillTransparency = 1
+		
+		SelectionConstructor = function(Item)
+			local Selection = Instance.new("Highlight")	
+			Selection.Adornee = Item
+			Selection.Parent = Storage
+			Selection.FillTransparency = 1
+			Selection.OutlineColor = Color3.fromRGB(25, 153, 255)
+			
+			return Selection
+		end
+		
+	elseif Mode == 2 then
+		HoverThing = Instance.new("SelectionBox", workspace.CurrentCamera)
+		HoverThing.Color3 = Color3.fromRGB(178,229,255)
+		HoverThing.LineThickness = .025
+		
+		SelectionConstructor = function(Item)
+			local Selection = Instance.new("SelectionBox")
+			Selection.Adornee = Item
+			Selection.Parent = Item
+			Selection.Color3 = Color3.fromRGB(25, 153, 255)
+			Selection.LineThickness = .025
+
+			return Selection
+		end
+	else
+		HoverThing = {}
+	end
+	
+	return HoverThing
+end
 
 local function GetAncestry(Part, Break)
 	local List = {}
@@ -219,6 +257,7 @@ local function CreateExplorer(Parent)
 	end)
 
 	Niggasex = Explorer
+	Kokot = Properties
 end
 
 function CreateItem(Class, Parent)
@@ -249,7 +288,7 @@ function CreateItem(Class, Parent)
 	Image.Size = UDim2.fromOffset(16,16)
 	Image.Image = Spritesheet
 	Image.ImageRectSize = Vector2.new(16,16)
-	Image.ImageRectOffset = Vector2.new(1,0)*16*(ResolveTile[Class.ClassName] or 0)
+	Image.ImageRectOffset = Vector2.new(16,0)*(ResolveTile[Class.ClassName] or 0)
 	Image.BorderSizePixel = 0
 	Image.BackgroundTransparency = 1
 
@@ -340,6 +379,108 @@ function CreateItem(Class, Parent)
 	return Frame
 end
 
+function RunEditor()
+	
+end
+
+function LoadProperty(Item, Data)
+	
+	local Frame = Instance.new("Frame")
+	Frame.Size = UDim2.new(1,0,0,16)
+	Frame.BackgroundColor3 = Colors.Primary
+	Frame.BorderSizePixel = 0
+	Frame.AutomaticSize = Enum.AutomaticSize.XY
+
+	local Image = Instance.new("ImageButton")
+	Image.Parent = Frame
+	Image.Size = UDim2.fromOffset(16,16)
+	Image.Image = Spritesheet
+	Image.ImageRectSize = Vector2.new(16,16)
+	Image.ImageRectOffset = Vector2.new(0,0)
+	Image.BorderSizePixel = 0
+	Image.BackgroundTransparency = 1
+
+	local Text = Instance.new("TextButton")
+	Text.Parent = Frame
+	Text.Text = Data.Name
+	Text.Position = UDim2.new(0,16,0,0)
+	Text.Size = UDim2.new(.5,-16,0,16)
+	Text.BorderSizePixel = 0
+	Text.BackgroundTransparency = 1
+	Text.TextScaled = true
+	Text.TextXAlignment = Enum.TextXAlignment.Left	
+	Text.TextColor3 = Colors.Text
+	
+	
+	
+	return Frame
+end
+
+function LoadCategory(Item, Category)
+	if Kokot then else return end
+	local Opened = false
+	local Properties = Instance:GetProperties(Item).CategorizedProperties[Category]
+	
+	local Frame = Instance.new("Frame")
+	Frame.Parent = Kokot
+	Frame.Size = UDim2.new(1,0,0,16)
+	Frame.BackgroundColor3 = Colors.Secondary
+	Frame.BorderSizePixel = 0
+	Frame.AutomaticSize = Enum.AutomaticSize.XY
+	
+	local Image = Instance.new("ImageButton")
+	Image.Parent = Frame
+	Image.Size = UDim2.fromOffset(16,16)
+	Image.Image = Spritesheet
+	Image.ImageRectSize = Vector2.new(16,16)
+	Image.ImageRectOffset = Vector2.new(0,0)
+	Image.BorderSizePixel = 0
+	Image.BackgroundTransparency = 1
+
+	local Text = Instance.new("TextButton")
+	Text.Parent = Frame
+	Text.Text = Category
+	Text.Position = UDim2.new(0,16,0,0)
+	Text.Size = UDim2.new(1,-16,0,16)
+	Text.BorderSizePixel = 0
+	Text.BackgroundTransparency = 1
+	Text.TextScaled = true
+	Text.TextXAlignment = Enum.TextXAlignment.Left	
+	Text.TextColor3 = Colors.Text
+	
+	local Container = Instance.new("Frame")
+	Container.Parent = Frame
+	Container.BackgroundTransparency = 1
+
+	local ContainerSorter = Instance.new("UIListLayout")
+	ContainerSorter.Parent = Container
+	
+	local function OpenSequence()
+		if Opened then 
+
+			ContainerSorter.Parent = nil
+			Container:ClearAllChildren()
+			ContainerSorter.Parent = Container
+			Container.BackgroundTransparency = 1
+
+		else
+
+			Container.Position = UDim2.new(0,16,0,16)
+			Container.Size = UDim2.new(1,0,1,-16)
+
+			Container.BackgroundTransparency = 0
+			Container.BackgroundColor3 = Color3.new(1,1,0)
+			
+			for Property, Data in pairs(Properties) do
+				LoadProperty(Item, Data).Parent = Container
+			end
+
+		end
+		Opened = not Opened
+	end
+	
+	Image.MouseButton1Click:Connect(OpenSequence)
+end
 
 function CreateWorld(Start)
 	for _, Instance in pairs(Start:GetChildren()) do
@@ -351,44 +492,6 @@ function SelectItem(Item, Multi, Select)
 	if #SearchResult~=0 then return end
 	SelectionInterrupt:Fire(Item, Multi, Select)
 end
-
-UserInputService.InputBegan:Connect(function(input, Processed)
-	if #SearchResult~=0 then return end
-	if input.UserInputType == Enum.UserInputType.MouseButton3 then
-		
-		MouseSelector = not MouseSelector
-		if MouseSelector then
-			RunService:BindToRenderStep("Selector", 0 , SelectionRoutine) 
-		else
-			RunService:UnbindFromRenderStep("Selector") 
-			HoverThing.Adornee = nil
-		end
-		
-	elseif input.UserInputType == Enum.UserInputType.MouseButton1 and MouseSelector==true then
-
-		Holobolo6Billion.FilterDescendantsInstances = { User.Character }
-
-		local Part = workspace:Raycast(workspace.CurrentCamera.CFrame.Position, Mouse.UnitRay.Direction*15000, Holobolo6Billion)
-
-		if Part then else return end
-
-		Part = Part.Instance
-		
-		Part = UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) and Part or GetAncestorestModel(Part)
-
-		local Ancestry = GetAncestry(Part)
-		Ancestry[#Ancestry] = nil
-
-		for _, Item in pairs(Ancestry) do
-			if not ReadBack[Item][3] then
-				ReadBack[Item][2]()
-			end
-		end
-
-		SelectItem(Part, UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or false, not Selections[Part])
-	end
-end)
-
 function ClearSelections()
 	for Item, _ in pairs(Selections) do
 		ReadBack[Item][1].BackgroundColor3 = (ReadBack[Item][6] and Colors.SoftSelected) or Colors.Primary
@@ -410,6 +513,44 @@ function SelectionRoutine()
 	HoverThing.Adornee = Last
 end
 
+UserInputService.InputBegan:Connect(function(input, Processed)
+	if #SearchResult~=0 then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton3 then
+
+		MouseSelector = not MouseSelector
+		if MouseSelector then
+			RunService:BindToRenderStep("Selector", 0 , SelectionRoutine) 
+		else
+			RunService:UnbindFromRenderStep("Selector") 
+			HoverThing.Adornee = nil
+		end
+
+	elseif input.UserInputType == Enum.UserInputType.MouseButton1 and MouseSelector==true then
+
+		Holobolo6Billion.FilterDescendantsInstances = { User.Character }
+
+		local Part = workspace:Raycast(workspace.CurrentCamera.CFrame.Position, Mouse.UnitRay.Direction*15000, Holobolo6Billion)
+
+		if Part then else return end
+
+		Part = Part.Instance
+
+		Part = UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) and Part or GetAncestorestModel(Part)
+
+		local Ancestry = GetAncestry(Part)
+		Ancestry[#Ancestry] = nil
+
+		for _, Item in pairs(Ancestry) do
+			if not ReadBack[Item][3] then
+				ReadBack[Item][2]()
+			end
+		end
+
+		SelectItem(Part, UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or false, not Selections[Part])
+	end
+end)
+
+
 SelectionInterrupt.Event:connect(function(Item, Multiple, Select, Highlight)
 	ClearSelections()
 
@@ -420,11 +561,7 @@ SelectionInterrupt.Event:connect(function(Item, Multiple, Select, Highlight)
 	for Item, _ in pairs(Selections) do
 		ReadBack[Item][1].BackgroundColor3 = Colors.Selected
 
-		local Selection = Instance.new("Highlight")	
-		Selection.Adornee = Item
-		Selection.Parent = Storage
-		Selection.FillTransparency = 1
-		Selection.OutlineColor = Color3.fromRGB(25, 153, 255)
+		local Selection = SelectionConstructor(Item)
 
 		Adornments[Item] = {
 			Selection
@@ -434,4 +571,6 @@ end)
 
 CreateExplorer(User.PlayerGui)
 CreateWorld(game)
+SelectionMode(2)
 
+LoadCategory(workspace, "Behavior")
