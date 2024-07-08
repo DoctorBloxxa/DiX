@@ -19,6 +19,7 @@ local function GetApiData()
 			success, data = pcall(HttpService.GetAsync, HttpService, Link)
 		else
 			data = game:HttpGet(Link, true)
+			success = true
 		end
 
 		if success then
