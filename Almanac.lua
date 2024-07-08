@@ -9,23 +9,26 @@ local function GetApiData()
 	local retries = 0
 	local success, data
 
-	local Method	= (IsStudio and HttpService.GetAsync) or game.HttpGet
-	local Root		= (IsStudio and HttpService) or game
-	
 	local Link = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json"
-	
-	local Args = IsStudio and {Method, Root, Link} or {Method, Link}
+
 
 	repeat
-	
-		success, data = pcall(table.unpack(Args))
+		local success, data;
+		
+		if (IsStudio and HttpService) then
+			success, data = pcall(HttpService.GetAsync, HttpService, Link)
+		else
+			success, data = pcall(function() 
+				game:HttpGet(Link)
+			end)
+		end
 
 		if success then
 			return HttpService:JSONDecode(data)
 		end
 
 		RunService.Heartbeat:Wait()
-		
+
 		if not IsStudio then warn("[Properties++]: ", data) end --- Avoids lagging studio with warns (yes we know you can't do http requests as a localscript now shut the fuck up)
 	until false
 end
@@ -46,9 +49,9 @@ local function CreatePropertiesForClasses()
 		for _, Stuff in pairs(Class.Members) do
 			Things[Stuff.MemberType][Stuff.Name] = Stuff
 		end
-		
+
 		--- All these loops below so I avoid brancing and have properties by category too
-		
+
 		for _, Property in pairs(Things.Property) do
 			Things.Categorized[Property.Category] = true
 		end
