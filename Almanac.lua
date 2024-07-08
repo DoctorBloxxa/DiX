@@ -18,7 +18,7 @@ local function GetApiData()
 		if (IsStudio and HttpService) then
 			success, data = pcall(HttpService.GetAsync, HttpService, Link)
 		else
-			success, data = pcall(function() game:HttpGet(Link, true) end)
+			data = game:HttpGet(Link, true)
 		end
 
 		if success then
