@@ -163,7 +163,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
-	Frame.BackgroundColor3 = Colors.Primary
+	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	Frame.Parent = Container or InstanceFrame
 
 	local Dropdown = Instance.new("ImageButton")
@@ -247,7 +247,6 @@ local function UnregisterInstance(Object: Instance, Container: Instance)
 	end
 
 	CloseInstance(Object)
-	Unselect(Object)
 
 	RegisteredInstances[Object].Parent:Remove()
 	RegisteredInstances[Object] = nil
@@ -292,6 +291,7 @@ function OpenInstance(Object: Instance)
 		RegisterInstance(Child, Handle)
 	end)
 	RegisteredInstancesEvents.ChildRemoved[Object] = Object.ChildRemoved:Connect(function(Child)
+		Unselect(Object)
 		UnregisterInstance(Child)
 	end)
 end
