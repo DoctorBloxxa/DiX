@@ -139,7 +139,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Icon.ImageRectSize = NewV2(16, 16)
 	Icon.ImageRectOffset = GetInstanceIcon(Object.ClassName)
 	Icon.Image = Spritesheet
-	Icon.ResampleMode = Enum.ResampleMode.Pixelated
+	Icon.ResampleMode = Enum.ResamplerMode.Pixelated
 	Icon.BorderSizePixel = 0
 	Icon.BackgroundTransparency = 1
 	Icon.Parent = Frame
