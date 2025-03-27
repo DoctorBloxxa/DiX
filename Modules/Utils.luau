@@ -1,4 +1,5 @@
 local utils = {}
+local tock = os.clock
 
 function utils:GetAncestry(Instance: Instance, Stop: Instance, InvertList: boolean)
 	local List, InvertedList = {}, {}
@@ -44,10 +45,9 @@ end
 
 function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 	local Deadline = 0
-	local tock = os.clock
-
+	
 	local watchdog = {}
-
+	
 	function watchdog:Reset()
 		Deadline = tock() + Budget
 	end
@@ -58,7 +58,7 @@ function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 			watchdog:Reset()
 		end
 	end
-
+	
 	return watchdog
 end
 

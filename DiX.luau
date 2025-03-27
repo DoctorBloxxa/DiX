@@ -7,7 +7,8 @@ local Colors = {
 }
 
 local BindTracker = {
-	AdjustProportions = false
+	AdjustProportions = false,
+	MultiSelect = false
 }
 
 local function downloadstring(URL: string)
@@ -31,7 +32,7 @@ local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo + "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo + "Modules/Utils.luau")
 local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo + "Modules/Almanac.luau")
-local Quartermaster = Utils:watchdog(1/240, RunService.RenderStepped.Wait)
+local Quartermaster = Utils:watchdog(1/60, wait)
 
 local function GetInstanceIcon(ClassName: string)
 	return Vector2.new(16, 0) * (InstanceIcons[ClassName] or 0)
@@ -72,9 +73,15 @@ end
 local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 	if Input.UserInputType == Enum.UserInputType.MouseButton3 then
 		BindTracker.AdjustProportions = Input.UserInputState == Enum.UserInputState.Begin;
-		
+
 		if BindTracker.AdjustProportions then
 			AdjustExplorer()
+		end
+	elseif Input.UserInputType == Enum.UserInputType.Keyboard then
+		if Input.KeyCode == Enum.KeyCode.LeftControl then
+			BindTracker.MultiSelect = Input.UserInputState == Enum.UserInputState.Begin;
+
+			warn(BindTracker.MultiSelect)
 		end
 	end
 end
@@ -148,7 +155,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	end)
 	
 	Frame.MouseEnter:Connect(function()
-		Frame.BackgroundColor3 = Colors.Primary:Lerp(Colors.Hover,.5)
+		Frame.BackgroundColor3 = Frame.BackgroundColor3:Lerp(Colors.Hover,.5)
 	end)
 	
 	Frame.MouseLeave:Connect(function()
@@ -186,8 +193,10 @@ function OpenInstance(Object: Instance)
 
 	local Handle = RegisteredInstances[Object]
 	
+	Quartermaster:Reset()
 	for _, Child in pairs(Object:GetChildren()) do
 		RegisterInstance(Child, Handle)
+		Quartermaster:Tick()
 	end
 	
 	RegisteredInstancesEvents.ChildAdded[Object] = Object.ChildAdded:Connect(function(Child)
@@ -256,4 +265,4 @@ local function CreateExplorer(Root: Instance)
 	end
 end
 
-CreateExplorer(workspace)
+CreateExplorer(game)
