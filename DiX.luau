@@ -35,7 +35,7 @@ local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
 local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
-local Quartermaster = Utils:watchdog(1 / 16, wait)
+local Quartermaster = Utils:watchdog(1 / 32, wait)
 
 local function GetInstanceIcon(ClassName: string)
 	return Vector2.new(16, 0) * (InstanceIcons[ClassName] or 0)
