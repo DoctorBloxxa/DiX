@@ -2,6 +2,7 @@ local Colors = {
 	Primary = Color3.new(1, 1, 1),
 	Secondary = Color3.new(0.596078, 0.596078, 0.596078),
 	Hover = Color3.new(0.364706, 0.556863, 1),
+	Hover3D = Color3.fromRGB(178, 229, 255),
 	Selected = Color3.new(0.52549, 0.729412, 1),
 	Text = Color3.new(0, 0, 0),
 }
@@ -42,19 +43,19 @@ end
 
 local ExplorerInstance, ExplorerBody, SearchBox, InstanceFrame, PropertyFrame
 local GestureHandle, EnableHandle, DisableHandle
-local Hover3DHandle, Hover3DBox
+local Hover3DHandle, Click3DHandle, Hover3DBox
 local BrowserProportion = 0.65
-local Selections3D = {}
+local Selections = {}
 local RegisteredInstances = {}
 local RegisteredInstancesEvents = {
 	ChildAdded = {},
 	ChildRemoved = {},
 }
 
-local function CreateBox()
+local function CreateBox(IsSelection: boolean)
 	local Box = Instance.new("SelectionBox")
 	Box.Parent = Recipient
-	Box.Color3 = Color3.fromRGB(178, 229, 255)
+	Box.Color3 = IsSelection and Colors.Selected or Colors.Hover3D
 	Box.LineThickness = 0.025
 	return Box
 end
@@ -63,7 +64,54 @@ local function Hover3D() -- I can't use interrupts for when Mouse.Target changes
 	Hover3DBox.Adornee = Mouse.Target and (BindTracker.DirectInteract and Mouse.Target or Utils:GetRootClass(Mouse.Target, "Model", false)) or nil
 end
 
-local function Select() end
+local function Click3D()
+	warn(BindTracker.MultiSelect)
+
+	if Hover3DBox.Adornee then
+		if not BindTracker.MultiSelect then
+			Unselect()
+		end
+		Select(Hover3DBox.Adornee)
+	end
+end
+
+function Unselect(Instance: Instance)
+	if Instance ~= nil then
+		if not Selections[Instance] then
+			return
+		end
+
+		Selections[Instance]:Remove()
+		Selections[Instance] = nil
+		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
+	else
+		for Selection, _ in pairs(Selections) do
+			Unselect(Selection)
+		end
+	end
+end
+
+function Select(Instance: Instance)
+	if Selections[Instance] then
+		return
+	end
+	local Ancestry = Utils:GetAncestry(Instance)
+
+	for _, Branch in pairs(Ancestry) do
+		OpenInstance(Branch)
+	end
+
+	local Frame = RegisteredInstances[Instance].Parent
+	local Offset = NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
+
+	InstanceFrame.CanvasPosition += NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
+	warn(InstanceFrame.CanvasPosition, Offset)
+	Frame.BackgroundColor3 = Colors.Selected
+
+	local Box = CreateBox()
+	Box.Adornee = Instance
+	Selections[Instance] = Box
+end
 
 local function AdjustExplorer()
 	BrowserProportion = Mouse.Y / ExplorerBody.AbsoluteSize.Y
@@ -88,9 +136,11 @@ local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 
 			if BindTracker.Interact3D then
 				Hover3DHandle = RunService.PreRender:Connect(Hover3D)
+				Click3DHandle = Mouse.Button1Down:Connect(Click3D)
 				Hover3DBox = CreateBox()
 			else
 				Hover3DHandle:Disconnect()
+				Click3DHandle:Disconnect()
 				Hover3DBox:Remove()
 			end
 		else
@@ -223,6 +273,10 @@ function OpenInstance(Object: Instance)
 		return
 	end
 
+	if RegisteredInstancesEvents.ChildAdded[Object] then
+		return
+	end
+
 	local Handle = RegisteredInstances[Object]
 
 	Quartermaster:Reset()
@@ -290,7 +344,6 @@ local function CreateExplorer(Root: Instance)
 		DisableHandle:Disconnect()
 
 		BindTracker.AdjustProportions = false
-		BindTracker.MultiSelect = false
 	end)
 
 	for _, Instance in pairs(Root:GetChildren()) do
