@@ -230,9 +230,13 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 		Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	end)
 	
-	Name.MouseButton1Click:Connect(function()
-		if not BindTracker.MultiSelect then Unselect() end
-		Select(Object)
+	Name.MouseButton1Down:Connect(function()
+		if not Selections[Object] then
+			if not BindTracker.MultiSelect then Unselect() end
+			Select(Object)
+		else
+			Unselect(Object)
+		end
 	end)
 end
 
