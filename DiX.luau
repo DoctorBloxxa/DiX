@@ -293,18 +293,19 @@ function OpenInstance(Object: Instance)
 
 	local Handle = RegisteredInstances[Object]
 
-	Quartermaster:Reset()
-	for _, Child in pairs(Object:GetChildren()) do
-		RegisterInstance(Child, Handle)
-		Quartermaster:Tick()
-	end
-
 	RegisteredInstancesEvents.ChildAdded[Object] = Object.ChildAdded:Connect(function(Child)
 		RegisterInstance(Child, Handle)
 	end)
+	
 	RegisteredInstancesEvents.ChildRemoved[Object] = Object.ChildRemoved:Connect(function(Child)
 		UnregisterInstance(Child)
 	end)
+	
+	Quartermaster:Reset()
+	for _, Child in pairs(Object:GetChildren()) do
+		Quartermaster:Tick()
+		RegisterInstance(Child, Handle)
+	end
 end
 
 local function CreateExplorer(Root: Instance)
