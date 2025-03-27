@@ -3,27 +3,10 @@ local IsAPILoaded, APILoaded = false, Instance.new("BindableEvent")
 local RunService = game:GetService("RunService")
 local IsStudio = RunService:IsStudio()
 
+if IsStudio then warn("Unable to auto-fetch Roblox API. Almanac unusable") return {} end
+
 local function GetApiData()
-	local success, data
-
-	local Link = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json"
-
-	repeat
-		local success, data
-
-		if IsStudio and HttpService then
-			success, data = pcall(HttpService.GetAsync, HttpService, Link)
-		else
-			data = game:HttpGet(Link, true)
-			success = true
-		end
-
-		if success then
-			return HttpService:JSONDecode(data)
-		end
-
-		wait(1)
-	until false
+	return game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true)
 end
 
 local Classes = {}

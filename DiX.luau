@@ -66,48 +66,43 @@ end
 
 local function Click3D()
 	warn(BindTracker.MultiSelect)
-
+	
 	if Hover3DBox.Adornee then
-		if not BindTracker.MultiSelect then
-			Unselect()
-		end
-		Select(Hover3DBox.Adornee)
+		if not BindTracker.MultiSelect then Unselect() end
+		Select(Hover3DBox.Adornee, true)
 	end
 end
 
 function Unselect(Instance: Instance)
 	if Instance ~= nil then
-		if not Selections[Instance] then
-			return
-		end
-
+		if not Selections[Instance] then return end
+		
 		Selections[Instance]:Remove()
 		Selections[Instance] = nil
 		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
 	else
-		for Selection, _ in pairs(Selections) do
-			Unselect(Selection)
-		end
+		for Selection, _ in pairs(Selections) do Unselect(Selection) end
 	end
 end
 
-function Select(Instance: Instance)
-	if Selections[Instance] then
-		return
-	end
+function Select(Instance: Instance, Scroll: boolean)
+	if Selections[Instance] then return end
 	local Ancestry = Utils:GetAncestry(Instance)
-
+	Ancestry[#Ancestry] = nil
+	
 	for _, Branch in pairs(Ancestry) do
 		OpenInstance(Branch)
 	end
-
+	
 	local Frame = RegisteredInstances[Instance].Parent
-	local Offset = NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
-
-	InstanceFrame.CanvasPosition += NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
-	warn(InstanceFrame.CanvasPosition, Offset)
+	
 	Frame.BackgroundColor3 = Colors.Selected
-
+	
+	if Scroll then
+		local Offset = NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
+		InstanceFrame.CanvasPosition += NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
+	end
+	
 	local Box = CreateBox()
 	Box.Adornee = Instance
 	Selections[Instance] = Box
@@ -194,7 +189,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Icon.BackgroundTransparency = 1
 	Icon.Parent = Frame
 
-	local Name = Instance.new("TextLabel")
+	local Name = Instance.new("TextButton")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(40, 0)
 	Name.Text = Object.Name
@@ -228,11 +223,16 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	end)
 
 	Frame.MouseEnter:Connect(function()
-		Frame.BackgroundColor3 = Frame.BackgroundColor3:Lerp(Colors.Hover, 0.5)
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, .75)
 	end)
 
 	Frame.MouseLeave:Connect(function()
-		Frame.BackgroundColor3 = Colors.Primary
+		Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
+	end)
+	
+	Name.MouseButton1Click:Connect(function()
+		if not BindTracker.MultiSelect then Unselect() end
+		Select(Object)
 	end)
 end
 
@@ -272,10 +272,8 @@ function OpenInstance(Object: Instance)
 	else
 		return
 	end
-
-	if RegisteredInstancesEvents.ChildAdded[Object] then
-		return
-	end
+	
+	if RegisteredInstancesEvents.ChildAdded[Object] then return end
 
 	local Handle = RegisteredInstances[Object]
 
