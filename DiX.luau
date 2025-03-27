@@ -65,8 +65,6 @@ local function Hover3D() -- I can't use interrupts for when Mouse.Target changes
 end
 
 local function Click3D()
-	warn(BindTracker.MultiSelect)
-	
 	if Hover3DBox.Adornee then
 		if not BindTracker.MultiSelect then Unselect() end
 		Select(Hover3DBox.Adornee, true)
@@ -127,8 +125,6 @@ local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 		if BindTracker.MultiSelect and Input.UserInputState == Enum.UserInputState.Begin then
 			BindTracker.Interact3D = not BindTracker.Interact3D
 
-			warn(BindTracker.Interact3D)
-
 			if BindTracker.Interact3D then
 				Hover3DHandle = RunService.PreRender:Connect(Hover3D)
 				Click3DHandle = Mouse.Button1Down:Connect(Click3D)
@@ -165,17 +161,24 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	Frame.Parent = Container or InstanceFrame
-
-	local Dropdown = Instance.new("ImageButton")
-	Dropdown.Size = UDim2.fromOffset(8, 8)
-	Dropdown.AnchorPoint = NewV2(0.5, 0.5)
-	Dropdown.Position = UDim2.fromOffset(8, 8)
-	Dropdown.Image = "rbxasset://textures/ui/dropdown_arrow@2x.png"
+	
+	local DropdownIcon = Instance.new("ImageLabel")
+	DropdownIcon.Size = UDim2.fromOffset(8, 8)
+	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
+	DropdownIcon.Position = UDim2.fromOffset(8, 8)
+	DropdownIcon.Image = "rbxasset://textures/ui/dropdown_arrow@2x.png"
+	DropdownIcon.BorderSizePixel = 0
+	DropdownIcon.BackgroundTransparency = 1
+	DropdownIcon.ScaleType = Enum.ScaleType.Fit
+	DropdownIcon.ImageColor3 = Colors.Text
+	DropdownIcon.Rotation = -90
+	DropdownIcon.Parent = Frame
+	
+	local Dropdown = Instance.new("TextButton")
+	Dropdown.Size = UDim2.fromOffset(16, 16)
 	Dropdown.BorderSizePixel = 0
 	Dropdown.BackgroundTransparency = 1
-	Dropdown.ScaleType = Enum.ScaleType.Fit
-	Dropdown.ImageColor3 = Colors.Text
-	Dropdown.Rotation = -90
+	Dropdown.Text = ""
 	Dropdown.Parent = Frame
 
 	local Icon = Instance.new("ImageLabel")
@@ -222,10 +225,10 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Dropdown.MouseButton1Click:Connect(function()
 		if RegisteredInstancesEvents.ChildAdded[Object] then
 			CloseInstance(Object)
-			Dropdown.Rotation = -90
+			DropdownIcon.Rotation = -90
 		else
 			OpenInstance(Object)
-			Dropdown.Rotation = 0
+			DropdownIcon.Rotation = 0
 		end
 	end)
 
