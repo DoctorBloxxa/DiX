@@ -245,7 +245,8 @@ local function UnregisterInstance(Object: Instance, Container: Instance)
 	else
 		return
 	end
-
+	
+	Unselect(Object)
 	CloseInstance(Object)
 
 	RegisteredInstances[Object].Parent:Remove()
@@ -291,7 +292,6 @@ function OpenInstance(Object: Instance)
 		RegisterInstance(Child, Handle)
 	end)
 	RegisteredInstancesEvents.ChildRemoved[Object] = Object.ChildRemoved:Connect(function(Child)
-		Unselect(Object)
 		UnregisterInstance(Child)
 	end)
 end
