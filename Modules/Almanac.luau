@@ -4,14 +4,11 @@ local RunService = game:GetService("RunService")
 local IsStudio = RunService:IsStudio()
 
 local function GetApiData()
-	local retries = 3
 	local success, data
 
 	local Link = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json"
 
 	repeat
-		retries -= 1
-
 		local success, data
 
 		if IsStudio and HttpService then
@@ -25,8 +22,8 @@ local function GetApiData()
 			return HttpService:JSONDecode(data)
 		end
 
-		RunService.Heartbeat:Wait()
-	until retries == 0
+		wait(1)
+	until false
 end
 
 local Classes = {}
@@ -81,4 +78,4 @@ end
 
 task.spawn(CreatePropertiesForClasses)
 
-return Classes, IsAPILoaded, APILoaded
+return Classes

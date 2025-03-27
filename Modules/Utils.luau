@@ -45,9 +45,9 @@ end
 
 function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 	local Deadline = 0
-	
+
 	local watchdog = {}
-	
+
 	function watchdog:Reset()
 		Deadline = tock() + Budget
 	end
@@ -58,7 +58,7 @@ function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 			watchdog:Reset()
 		end
 	end
-	
+
 	return watchdog
 end
 
