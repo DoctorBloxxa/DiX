@@ -189,7 +189,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Icon.BackgroundTransparency = 1
 	Icon.Parent = Frame
 
-	local Name = Instance.new("TextButton")
+	local Name = Instance.new("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(40, 0)
 	Name.Text = Object.Name
@@ -208,6 +208,13 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Box.BorderSizePixel = 0
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
+	
+	local BodyClicker = Instance.new("TextButton")
+	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
+	BodyClicker.Position = UDim2.fromOffset(16,0)
+	BodyClicker.BackgroundTransparency = 1
+	BodyClicker.Text = ""
+	BodyClicker.Parent = Frame
 
 	RegisteredInstances[Object] = Box
 	Instance.new("UIListLayout").Parent = Box
@@ -230,12 +237,13 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 		Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	end)
 	
-	Name.MouseButton1Down:Connect(function()
+	BodyClicker.MouseButton1Down:Connect(function()
 		if not Selections[Object] then
 			if not BindTracker.MultiSelect then Unselect() end
 			Select(Object)
 		else
 			Unselect(Object)
+			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, .75)
 		end
 	end)
 end
