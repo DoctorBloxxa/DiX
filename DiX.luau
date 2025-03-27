@@ -31,9 +31,9 @@ local NewInstance = Instance.new
 local Spritesheet = "rbxasset://textures/ClassImages.png"
 local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 
-local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo + "Modules/Spritesheet.luau")
-local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo + "Modules/Utils.luau")
-local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo + "Modules/Almanac.luau")
+local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
+local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
+local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
 local Quartermaster = Utils:watchdog(1 / 60, wait)
 
 local function GetInstanceIcon(ClassName: string)
