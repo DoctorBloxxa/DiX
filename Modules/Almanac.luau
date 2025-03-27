@@ -6,7 +6,7 @@ local IsStudio = RunService:IsStudio()
 if IsStudio then warn("Unable to auto-fetch Roblox API. Almanac unusable") return {} end
 
 local function GetApiData()
-	return game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true)
+	return HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true))
 end
 
 local Classes = {}
