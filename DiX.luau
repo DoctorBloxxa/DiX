@@ -144,14 +144,15 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Icon.Parent = Frame
 
 	local Name = Instance.new("TextLabel")
-	Name.Size = UDim2.new(1, -32, 0, 16)
-	Name.Position = UDim2.fromOffset(16, 0)
+	Name.Size = UDim2.new(1, -40, 0, 16)
+	Name.Position = UDim2.fromOffset(40, 0)
 	Name.Text = Object.Name
 	Name.TextSize = 8
 	Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
 	Name.BackgroundTransparency = 1
 	Name.TextColor3 = Colors.Text
+	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
 
 	local Box = Instance.new("Frame")
