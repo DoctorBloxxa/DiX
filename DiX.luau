@@ -247,6 +247,7 @@ local function UnregisterInstance(Object: Instance, Container: Instance)
 	end
 
 	CloseInstance(Object)
+	Unselect(Object)
 
 	RegisteredInstances[Object].Parent:Remove()
 	RegisteredInstances[Object] = nil
