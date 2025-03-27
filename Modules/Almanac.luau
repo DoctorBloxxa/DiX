@@ -3,10 +3,8 @@ local IsAPILoaded, APILoaded = false, Instance.new("BindableEvent")
 local RunService = game:GetService("RunService")
 local IsStudio = RunService:IsStudio()
 
-if IsStudio then warn("Unable to auto-fetch Roblox API. Almanac unusable") return {} end
-
 local function GetApiData()
-	return HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true))
+	return HttpService:JSONDecode(HttpService:GetAsync("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true))
 end
 
 local Classes = {}
@@ -29,11 +27,11 @@ local function CreatePropertiesForClasses()
 		--- All these loops below so I avoid brancing and have properties by category too
 
 		for _, Property in pairs(Data.Property) do
-			Data.Categorized[Data.Category] = true
+			Data.Categorized[Property.Category] = true
 		end
 
 		for Category, _ in pairs(Data.Categorized) do
-			Data.Categorized[Data] = {}
+			Data.Categorized[Category] = {}
 		end
 
 		for _, Property in pairs(Data.Property) do
@@ -61,4 +59,4 @@ end
 
 task.spawn(CreatePropertiesForClasses)
 
-return Classes
+warn(Classes)
