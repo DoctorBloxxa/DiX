@@ -69,4 +69,4 @@ if not IsAPILoaded then
 	APILoaded.Event:Wait()
 end
 
-return Classes
+return {Classes, APILoaded}
