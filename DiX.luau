@@ -349,7 +349,7 @@ end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Hook
-	
+
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
@@ -357,7 +357,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	Frame.Parent = Parent
 
 	local Name = Instance.new("TextLabel")
-	Name.Size = UDim2.new(.5, -8, 0, 16)
+	Name.Size = UDim2.new(0.5, -8, 0, 16)
 	Name.Position = UDim2.fromOffset(8, 0)
 	Name.Text = PropertyData.Name
 	Name.TextSize = 8
@@ -367,57 +367,55 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	Name.TextColor3 = Colors.Text
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
-	
+
 	local ValueBox
-	
+
 	local function CreateValueBox(Class)
 		local Box = Instance.new(Class)
 		Box.Size = UDim2.new(1, -8, 0, 16)
-		Box.AnchorPoint = NewV2(0,0)
-		Box.Position = UDim2.fromScale(1,0)
+		Box.AnchorPoint = NewV2(0, 0)
+		Box.Position = UDim2.fromScale(1, 0)
 		Box.BorderSizePixel = 0
 		Box.BackgroundTransparency = 0
 		Box.BackgroundColor3 = Colors.Secondary
 		Box.Parent = Name
-		
+
 		return Box
 	end
 
 	if PropertyData.ValueType.Category == "Primitive" then
 		local ValueType = PropertyData.ValueType.Name
-		
+
 		if ValueType == "float" then
-			
 			local Box = CreateValueBox("TextBox")
 			Box.Text = InstancePassthrough[PropertyData.Name]
-			
-			
-			
-			Box.FocusLost:connect(function(PressedEnter)	
-				if PressedEnter and tostring(tonumber(Box.Text))==Box.Text then
+
+			Box.FocusLost:connect(function(PressedEnter)
+				if PressedEnter and tostring(tonumber(Box.Text)) == Box.Text then
 					InstancePassthrough[PropertyData.Name] = Box.Text
 				end
-				
+
 				Box.Text = InstancePassthrough[PropertyData.Name]
 			end)
-			
+
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
-				if Box:IsFocused() then Box.FocusLost:Wait() end
+				if Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
 				Box.Text = InstancePassthrough[PropertyData.Name]
 			end)
-			
 		elseif ValueType == "bool" then
 			local Box = CreateValueBox("TextButton")
-			Box.TextColor3 = Color3.new(1,1,1)
-			
+			Box.TextColor3 = Color3.new(1, 1, 1)
+
 			local OnColor = Color3.fromRGB(0, 139, 219)
 			local OffColor = Color3.fromRGB(219, 0, 82)
-			
+
 			local function ReflectValue()
 				Box.BackgroundColor3 = InstancePassthrough[PropertyData.Name] and OnColor or OffColor
 				Box.Text = InstancePassthrough[PropertyData.Name] and "true" or "false"
 			end
-			
+
 			Box.MouseButton1Down:connect(function()
 				InstancePassthrough[PropertyData.Name] = not InstancePassthrough[PropertyData.Name]
 				ReflectValue()
@@ -426,28 +424,26 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
 				ReflectValue()
 			end)
-			
+
 			ReflectValue()
 		end
-	
 	elseif PropertyData.ValueType.Category == "DataType" then
-		
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox("TextLabel") -- We'll get to actually editing enums later
 		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
-		
+
 		local function ReflectValue()
 			warn(InstancePassthrough[PropertyData.Name].Value)
 			Box.Text = ValidEnums[InstancePassthrough[PropertyData.Name].Value + 1].Name
 		end
-		
+
 		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
 			ReflectValue()
 		end)
-		
+
 		ReflectValue()
 	end
-	
+
 	Frame.MouseEnter:Connect(function()
 		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 	end)
@@ -455,14 +451,14 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	Frame.MouseLeave:Connect(function()
 		Frame.BackgroundColor3 = Colors.Primary
 	end)
-	
+
 	return Frame, Hook
 end
 
 local function LoadCategory(CategoryData: table, DataName: string, InstancePassthrough: Instance)
 	local IsOpened = false
 	local LoadedProperties = {}
-	
+
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 24)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
@@ -507,9 +503,9 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 	Box.BorderSizePixel = 0
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
-	
+
 	Instance.new("UIListLayout").Parent = Box
-	
+
 	Frame.MouseEnter:Connect(function()
 		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 	end)
@@ -517,12 +513,14 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 	Frame.MouseLeave:Connect(function()
 		Frame.BackgroundColor3 = Colors.Secondary
 	end)
-		
+
 	Dropdown.MouseButton1Down:Connect(function()
 		if not IsOpened then
 			local Properties = CategoryData
 			for Name, Data in Properties do
-				if Data.Tags and table.find(Data.Tags, "NotScriptable") then continue end
+				if Data.Tags and table.find(Data.Tags, "NotScriptable") then
+					continue
+				end
 				local Tab = LoadProperty(Data, Box, InstancePassthrough)
 				LoadedProperties[Tab] = true
 			end
@@ -538,13 +536,15 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 end
 
 local function LoadProperties(Object: Instance)
-	if not AlmanacData[2] then return end
-	
+	if not AlmanacData[2] then
+		return
+	end
+
 	local Almanac = AlmanacData[1]
-	
+
 	local Tree = Almanac[Object.ClassName]
 	local Categories = Tree.CategorizedProperties
-	
+
 	for CategoryName, CategoryData in Categories do
 		LoadCategory(CategoryData, CategoryName, Object)
 	end
@@ -591,7 +591,7 @@ local function CreateExplorer(Root: Instance)
 	InstanceFrame.Parent = ExplorerBody
 	InstanceFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	InstanceFrame.CanvasSize = UDim2.new()
-	
+
 	PropertyFrame = NewInstance("ScrollingFrame")
 	PropertyFrame.AnchorPoint = NewV2(1, 1)
 	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
