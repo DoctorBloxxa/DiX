@@ -97,7 +97,7 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 
 	if not Basic then
 		local Ancestry = Utils:GetAncestry(Instance)
-		Ancestry[#Ancestry] = nil
+		table.remove(Ancestry, #Ancestry)
 
 		for _, Branch in pairs(Ancestry) do
 			OpenInstance(Branch)
@@ -236,7 +236,6 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 
 	RegisteredInstances[Object] = Box
 	Instance.new("UIListLayout").Parent = Box
-
 	if not Basic then
 		Dropdown.MouseButton1Click:Connect(function()
 			if RegisteredInstancesEvents.ChildAdded[Object] then
@@ -255,19 +254,18 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 		Frame.MouseLeave:Connect(function()
 			Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 		end)
-
+	end
 		BodyClicker.MouseButton1Down:Connect(function()
 			if not Selections[Object] then
 				if not BindTracker.MultiSelect then
 					Unselect()
 				end
-				Select(Object)
+				Select(Object, false, true)
 			else
 				Unselect(Object)
 				Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 			end
 		end)
-	end
 end
 
 local function UnregisterInstance(Object: Instance, Container: Instance)
@@ -412,12 +410,14 @@ local function CreateExplorer(Root: Instance)
 		for _, Instance in pairs(game:GetDescendants()) do
 			if Utils:matchpattern(Pattern, Instance.Name) then
 				local Ancestry = Utils:GetAncestry(Instance, Root)
-
+				local End = Ancestry[#Ancestry]
+				table.remove(Ancestry, #Ancestry)
+				
 				for IDX, Item in Ancestry do
 					RegisterInstance(Item, RegisteredInstances[Item.Parent] or InstanceFrame, true)
 				end
-
-				Select(Ancestry[#Ancestry], false, true)
+				
+				RegisterInstance(End, RegisteredInstances[End.Parent] or InstanceFrame, false)
 			end
 		end
 	end)
