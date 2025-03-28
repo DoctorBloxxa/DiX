@@ -310,6 +310,18 @@ function OpenInstance(Object: Instance)
 	end
 end
 
+local function CreateRoot(Root)
+	for _, Instance in pairs(Root:GetChildren()) do
+		RegisterInstance(Instance)
+	end
+end
+
+local function ClearRoot(Root)
+	for _, Instance in pairs(Root:GetChildren()) do
+		UnregisterInstance(Instance)
+	end
+end
+
 local function CreateExplorer(Root: Instance)
 	ExplorerInstance = NewInstance("ScreenGui")
 	ExplorerInstance.Name = "FoundationOverlay"
@@ -328,6 +340,8 @@ local function CreateExplorer(Root: Instance)
 	SearchBox.Size = UDim2.new(0.5, 0, 0, 32)
 	SearchBox.Position = UDim2.fromScale(1, 0)
 	SearchBox.Parent = ExplorerBody
+	SearchBox.Text = ""
+	SearchBox.PlaceholderText = "Search: "
 	SearchBox.BackgroundColor3 = Colors.Primary
 
 	InstanceFrame = NewInstance("ScrollingFrame")
@@ -362,10 +376,18 @@ local function CreateExplorer(Root: Instance)
 
 		BindTracker.AdjustProportions = false
 	end)
-
-	for _, Instance in pairs(Root:GetChildren()) do
-		RegisterInstance(Instance)
-	end
+	
+	SearchBox.FocusLost:Connect(function(IsEnter)
+		if not IsEnter then return end
+		local Pattern = SearchBox.Text
+		ClearRoot(Root)
+		if Pattern == "" then 
+			CreateRoot(Root)
+			return 
+		end
+	end)
+	
+	CreateRoot(Root)
 end
 
 CreateExplorer(game)
