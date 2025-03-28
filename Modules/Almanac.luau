@@ -100,6 +100,4 @@ for Class, ClassData in Classes do
 	ClassData.AllProperties = MergedProperties
 end
 
-warn(Classes["Part"].AllProperties)
-
 return {Classes, APILoaded}
