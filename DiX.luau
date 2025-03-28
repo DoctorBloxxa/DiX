@@ -62,7 +62,7 @@ local function CreateBox(IsSelection: boolean)
 end
 
 local function Hover3D() -- I can't use interrupts for when Mouse.Target changes so instead we use this bullcrap
-	Hover3DBox.Adornee = Mouse.Target and (BindTracker.DirectInteract and Mouse.Target or Utils:GetRootClass(Mouse.Target, "Model", false)) or nil
+	Hover3DBox.Adornee = not CannotSelect and Mouse.Target and (BindTracker.DirectInteract and Mouse.Target or Utils:GetRootClass(Mouse.Target, "Model", false)) or nil
 end
 
 local function Click3D()
