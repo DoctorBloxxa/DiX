@@ -347,16 +347,17 @@ function OpenInstance(Object: Instance)
 	end
 end
 
-local function LoadProperty(Object: Instance, Property: table)
+local function LoadProperty(PropertyData: table, PropertyName: string, Parent: Instance)
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
-	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
+	Frame.BackgroundColor3 = Colors.Primary
+	Frame.Parent = Parent
 
 	local Name = Instance.new("TextLabel")
-	Name.Size = UDim2.new(1, -40, 0, 16)
-	Name.Position = UDim2.fromOffset(40, 0)
-	Name.Text = Object.Name
+	Name.Size = UDim2.new(.5, -8, 0, 16)
+	Name.Position = UDim2.fromOffset(8, 0)
+	Name.Text = PropertyName
 	Name.TextSize = 8
 	Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
@@ -364,11 +365,16 @@ local function LoadProperty(Object: Instance, Property: table)
 	Name.TextColor3 = Colors.Text
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
+	
+	return Frame
 end
 
-local function LoadCategory(CategoryData: table)
+local function LoadCategory(CategoryData: table, DataName: string)
+	local IsOpened = false
+	local LoadedProperties = {}
+	
 	local Frame = Instance.new("Frame")
-	Frame.Size = UDim2.new(1, 0, 0, 16)
+	Frame.Size = UDim2.new(1, 0, 0, 24)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Colors.Primary
 	Frame.Parent = PropertyFrame
@@ -376,7 +382,7 @@ local function LoadCategory(CategoryData: table)
 	local DropdownIcon = Instance.new("ImageLabel")
 	DropdownIcon.Size = UDim2.fromOffset(8, 8)
 	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
-	DropdownIcon.Position = UDim2.fromOffset(8, 8)
+	DropdownIcon.Position = UDim2.fromOffset(12, 12)
 	DropdownIcon.Image = "rbxasset://textures/ui/dropdown_arrow@2x.png"
 	DropdownIcon.BorderSizePixel = 0
 	DropdownIcon.BackgroundTransparency = 1
@@ -386,17 +392,16 @@ local function LoadCategory(CategoryData: table)
 	DropdownIcon.Parent = Frame
 
 	local Dropdown = Instance.new("TextButton")
-	Dropdown.Size = UDim2.fromOffset(16, 16)
+	Dropdown.Size = UDim2.fromOffset(24, 24)
 	Dropdown.BorderSizePixel = 0
 	Dropdown.BackgroundTransparency = 1
 	Dropdown.Text = ""
 	Dropdown.Parent = Frame
 
-
 	local Name = Instance.new("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
-	Name.Position = UDim2.fromOffset(40, 0)
-	Name.Text = Object.Name
+	Name.Position = UDim2.fromOffset(24, 4)
+	Name.Text = DataName
 	Name.TextSize = 8
 	Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
@@ -407,18 +412,38 @@ local function LoadCategory(CategoryData: table)
 
 	local Box = Instance.new("Frame")
 	Box.Size = UDim2.new(1, -16, 0, 0)
-	Box.Position = UDim2.fromOffset(16, 16)
+	Box.Position = UDim2.fromOffset(24, 24)
 	Box.AutomaticSize = Enum.AutomaticSize.XY
 	Box.BorderSizePixel = 0
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
+	
+	Instance.new("UIListLayout").Parent = Box
+	
+	Frame.MouseEnter:Connect(function()
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+	end)
 
-	local BodyClicker = Instance.new("TextButton")
-	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
-	BodyClicker.Position = UDim2.fromOffset(16, 0)
-	BodyClicker.BackgroundTransparency = 1
-	BodyClicker.Text = ""
-	BodyClicker.Parent = Frame
+	Frame.MouseLeave:Connect(function()
+		Frame.BackgroundColor3 = Colors.Primary
+	end)
+		
+	Dropdown.MouseButton1Down:Connect(function()
+		if not IsOpened then
+			local Properties = CategoryData
+			for Name, Data in Properties do
+				local Tab = LoadProperty(Data, Name, Box)
+				LoadedProperties[Tab] = true
+			end
+		else
+			for Item, _ in LoadedProperties do
+				Item:Remove()
+				LoadedProperties[Item] = nil
+			end
+		end
+		IsOpened = not IsOpened
+		DropdownIcon.Rotation = IsOpened and 0 or -90
+	end)
 end
 
 local function LoadProperties(Object: Instance)
@@ -429,8 +454,8 @@ local function LoadProperties(Object: Instance)
 	local Tree = Almanac[Object.ClassName]
 	local Categories = Tree.CategorizedProperties
 	
-	for _, CategoryData in Categories do
-		LoadCategory(CategoryData)
+	for CategoryName, CategoryData in Categories do
+		LoadCategory(CategoryData, CategoryName)
 	end
 end
 
