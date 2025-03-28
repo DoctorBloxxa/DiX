@@ -3,9 +3,14 @@ local IsAPILoaded, APILoaded = false, Instance.new("BindableEvent")
 local RunService = game:GetService("RunService")
 local IsStudio = RunService:IsStudio()
 
+if IsStudio then
+	warn("Unable to fetch Roblox API. Almanac unusable.")
+	return {}
+end
+
 local function GetApiData()
-	--return HttpService:JSONDecode(HttpService:GetAsync("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/Full-API-Dump.json", true))
-	return HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/Full-API-Dump.json", true))
+	--return HttpService:JSONDecode(HttpService:GetAsync("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true))
+	return HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/API-Dump.json", true))
 end
 
 local Classes = {}
@@ -64,4 +69,36 @@ if not IsAPILoaded then
 	APILoaded.Event:Wait()
 end
 
-return { Classes, IsAPILoaded }
+for Class, ClassData in Classes do
+	local Super = ClassData.SuperClass
+	local SuperProperties = ClassData.CategorizedProperties
+	
+	--print(Class, SuperProperties)
+
+	if Super ~= "<<<ROOT>>>" then
+		local SuperTree = Classes[Super]
+		repeat
+			if SuperTree.SuperClass == Classes[Super].SuperClass then break end -- Instance.SuperClass == Instance lmao
+			SuperTree = Classes[Super]
+			local Super = SuperTree.SuperClass
+			
+			--warn(SuperTree.SuperClass, ClassData.SuperClass)
+
+			for Category, Properties in pairs(SuperTree.CategorizedProperties) do
+				if SuperProperties[Category]==nil then SuperProperties[Category] = {} end
+
+				--warn(Category, Properties)
+
+				for Property, Data in Properties do
+					SuperProperties[Category][Property] = Data
+				end
+			end
+			
+			game:GetService("RunService").Heartbeat:Wait()
+		until Super == "<<<ROOT>>>" 
+	end
+
+	ClassData.AllProperties = SuperProperties
+end
+
+return {Classes, APILoaded}

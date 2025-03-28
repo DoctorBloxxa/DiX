@@ -631,7 +631,7 @@ function LoadProperties(Object: Instance)
 	local Almanac = AlmanacData[1]
 
 	local Tree = Almanac[Object.ClassName]
-	local Categories = Tree.CategorizedProperties
+	local Categories = Tree.AllProperties
 
 	for CategoryName, CategoryData in Categories do
 		LoadCategory(CategoryData, CategoryName, Object)
