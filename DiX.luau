@@ -52,6 +52,7 @@ local RegisteredInstances = {}
 local RegisteredInstancesEvents = {
 	ChildAdded = {},
 	ChildRemoved = {},
+	NameChanged = {}
 }
 local CannotSelect = false
 
@@ -301,6 +302,11 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 		end
 	end)
+	
+
+	RegisteredInstancesEvents.NameChanged[Object] = Object:GetPropertyChangedSignal("Name"):Connect(function()
+		Name.Text = Object.Name
+	end)
 end
 
 function UnregisterInstance(Object: Instance, Container: Instance)
@@ -311,6 +317,9 @@ function UnregisterInstance(Object: Instance, Container: Instance)
 
 	Unselect(Object)
 	CloseInstance(Object)
+	
+	RegisteredInstancesEvents.NameChanged[Object]:Disconnect()
+	RegisteredInstancesEvents.NameChanged[Object] = nil
 
 	RegisteredInstances[Object].Parent:Remove()
 	RegisteredInstances[Object] = nil
