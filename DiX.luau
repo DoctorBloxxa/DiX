@@ -488,6 +488,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			end
 
 			if not ReadOnly then
+				Box.ClearTextOnFocus = false
+				
 				Box.FocusLost:connect(function(PressedEnter)
 					if PressedEnter then
 						local Components = string.split(Box.Text, ",")
@@ -501,6 +503,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 							X = Utils:matchnumber(X)
 							Y = Utils:matchnumber(Y)
 							Z = Utils:matchnumber(Z)
+							
+							InstancePassthrough[PropertyData.Name] = NewV3(X, Y, Z)
 						end
 					end
 
