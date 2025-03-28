@@ -76,13 +76,13 @@ for Class, ClassData in Classes do
 	--print(Class, SuperProperties)
 
 	if Super ~= "<<<ROOT>>>" then
-		local SuperTree = Classes[Super]
+		local SuperTree = ClassData
 		repeat
+			--warn(SuperTree.SuperClass, Classes[Super].SuperClass)
+			
 			if SuperTree.SuperClass == Classes[Super].SuperClass then break end -- Instance.SuperClass == Instance lmao
 			SuperTree = Classes[Super]
 			local Super = SuperTree.SuperClass
-			
-			--warn(SuperTree.SuperClass, ClassData.SuperClass)
 
 			for Category, Properties in pairs(SuperTree.CategorizedProperties) do
 				if SuperProperties[Category]==nil then SuperProperties[Category] = {} end
@@ -93,6 +93,7 @@ for Class, ClassData in Classes do
 					SuperProperties[Category][Property] = Data
 				end
 			end
+			
 		until Super == "<<<ROOT>>>" 
 	end
 
