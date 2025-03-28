@@ -92,7 +92,7 @@ function Unselect(Instance: Instance)
 			Unselect(Selection)
 		end
 	end
-	
+
 	if SelectionCount == 0 then
 		ClearProperties()
 	end
@@ -364,6 +364,7 @@ end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Hook
+	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly"))
 
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
@@ -402,16 +403,38 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		local ValueType = PropertyData.ValueType.Name
 
 		if ValueType == "float" then
-			local Box = CreateValueBox("TextBox")
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
 			Box.Text = InstancePassthrough[PropertyData.Name]
 
-			Box.FocusLost:connect(function(PressedEnter)
-				if PressedEnter and tostring(tonumber(Box.Text)) == Box.Text then
-					InstancePassthrough[PropertyData.Name] = Box.Text
-				end
+			if not ReadOnly then
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter and tostring(tonumber(Box.Text)) == Box.Text then
+						InstancePassthrough[PropertyData.Name] = Box.Text
+					end
 
+					Box.Text = InstancePassthrough[PropertyData.Name]
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
 				Box.Text = InstancePassthrough[PropertyData.Name]
 			end)
+		elseif ValueType == "string" then
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
+			Box.Text = InstancePassthrough[PropertyData.Name]
+
+			if not ReadOnly then
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter then
+						InstancePassthrough[PropertyData.Name] = Box.Text
+					end
+
+					Box.Text = InstancePassthrough[PropertyData.Name]
+				end)
+			end
 
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
 				if Box:IsFocused() then
@@ -420,7 +443,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 				Box.Text = InstancePassthrough[PropertyData.Name]
 			end)
 		elseif ValueType == "bool" then
-			local Box = CreateValueBox("TextButton")
+			local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
 			Box.TextColor3 = Color3.new(1, 1, 1)
 
 			local OnColor = Color3.fromRGB(0, 139, 219)
@@ -431,10 +454,12 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 				Box.Text = InstancePassthrough[PropertyData.Name] and "true" or "false"
 			end
 
-			Box.MouseButton1Down:connect(function()
-				InstancePassthrough[PropertyData.Name] = not InstancePassthrough[PropertyData.Name]
-				ReflectValue()
-			end)
+			if not ReadOnly then
+				Box.MouseButton1Down:connect(function()
+					InstancePassthrough[PropertyData.Name] = not InstancePassthrough[PropertyData.Name]
+					ReflectValue()
+				end)
+			end
 
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
 				ReflectValue()
@@ -444,7 +469,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
 	elseif PropertyData.ValueType.Category == "Enum" then
-		local Box = CreateValueBox("TextButton") -- We'll get to actually editing enums later
+		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel") -- We'll get to actually editing enums later
 
 		local Opened = false
 		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
@@ -454,7 +479,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			Box.Text = InstancePassthrough[PropertyData.Name].Name
 		end
 
-		if not (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) then
+		if not ReadOnly then
 			Box.MouseButton1Down:connect(function()
 				if not Opened then
 					for IDX, Enum in pairs(ValidEnums) do
