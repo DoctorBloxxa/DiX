@@ -431,7 +431,23 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			ReflectValue()
 		end
 	
-		elseif PropertyData.ValueType.Category == "DataType" then
+	elseif PropertyData.ValueType.Category == "DataType" then
+		
+	elseif PropertyData.ValueType.Category == "Enum" then
+		local Box = CreateValueBox("TextLabel") -- We'll get to actually editing enums later
+		Box.TextXAlignment = Enum.TextXAlignment.Left
+		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
+		
+		local function ReflectValue()
+			warn(InstancePassthrough[PropertyData.Name].Value)
+			Box.Text = ValidEnums[InstancePassthrough[PropertyData.Name].Value + 1].Name
+		end
+		
+		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+			ReflectValue()
+		end)
+		
+		ReflectValue()
 	end
 	
 	Frame.MouseEnter:Connect(function()
