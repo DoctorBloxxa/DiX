@@ -388,7 +388,7 @@ local function CreateExplorer(Root: Instance)
 	InstanceFrame.Parent = ExplorerBody
 	InstanceFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	InstanceFrame.CanvasSize = UDim2.new()
-	
+
 	PropertyFrame = NewInstance("ScrollingFrame")
 	PropertyFrame.AnchorPoint = NewV2(1, 1)
 	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
