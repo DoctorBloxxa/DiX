@@ -92,6 +92,10 @@ function Unselect(Instance: Instance)
 			Unselect(Selection)
 		end
 	end
+	
+	if SelectionCount == 0 then
+		ClearProperties()
+	end
 end
 
 function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
