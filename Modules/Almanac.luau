@@ -93,8 +93,6 @@ for Class, ClassData in Classes do
 					SuperProperties[Category][Property] = Data
 				end
 			end
-			
-			game:GetService("RunService").Heartbeat:Wait()
 		until Super == "<<<ROOT>>>" 
 	end
 
