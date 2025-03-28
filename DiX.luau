@@ -347,7 +347,7 @@ function OpenInstance(Object: Instance)
 	end
 end
 
-local function LoadProperty(PropertyData: table, PropertyName: string, Parent: Instance)
+local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
@@ -357,7 +357,7 @@ local function LoadProperty(PropertyData: table, PropertyName: string, Parent: I
 	local Name = Instance.new("TextLabel")
 	Name.Size = UDim2.new(.5, -8, 0, 16)
 	Name.Position = UDim2.fromOffset(8, 0)
-	Name.Text = PropertyName
+	Name.Text = PropertyData.Name
 	Name.TextSize = 8
 	Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
@@ -366,17 +366,55 @@ local function LoadProperty(PropertyData: table, PropertyName: string, Parent: I
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
 	
+	local ValueBox
+	
+	local function CreateValueBox(Class)
+		local Box = Instance.new(Class)
+		Box.Size = UDim2.new(1, -8, 0, 16)
+		Box.AnchorPoint = NewV2(0,0)
+		Box.Position = UDim2.fromScale(1,0)
+		Box.BorderSizePixel = 0
+		Box.BackgroundTransparency = 0
+		Box.BackgroundColor3 = Colors.Secondary
+		Box.Parent = Name
+		
+		return Box
+	end
+
+	if PropertyData.ValueType.Category == "Primitive" then
+		local ValueType = PropertyData.ValueType.Name
+		
+		if ValueType == "float" then
+			
+			local Box = CreateValueBox("TextBox")
+			Box.Text = InstancePassthrough[PropertyData.Name]
+			Box.TextXAlignment = Enum.TextXAlignment.Left
+			
+			Box.FocusLost:connect(function(PressedEnter)	
+				if PressedEnter and tostring(tonumber(Box.Text))==Box.Text then
+					InstancePassthrough[PropertyData.Name] = Box.Text
+				end
+				
+				Box.Text = InstancePassthrough[PropertyData.Name]
+			end)
+			
+			
+		end
+	
+		else
+	end
+	
 	return Frame
 end
 
-local function LoadCategory(CategoryData: table, DataName: string)
+local function LoadCategory(CategoryData: table, DataName: string, InstancePassthrough: Instance)
 	local IsOpened = false
 	local LoadedProperties = {}
 	
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 24)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
-	Frame.BackgroundColor3 = Colors.Primary
+	Frame.BackgroundColor3 = Colors.Secondary
 	Frame.Parent = PropertyFrame
 
 	local DropdownIcon = Instance.new("ImageLabel")
@@ -425,14 +463,14 @@ local function LoadCategory(CategoryData: table, DataName: string)
 	end)
 
 	Frame.MouseLeave:Connect(function()
-		Frame.BackgroundColor3 = Colors.Primary
+		Frame.BackgroundColor3 = Colors.Secondary
 	end)
 		
 	Dropdown.MouseButton1Down:Connect(function()
 		if not IsOpened then
 			local Properties = CategoryData
 			for Name, Data in Properties do
-				local Tab = LoadProperty(Data, Name, Box)
+				local Tab = LoadProperty(Data, Box, InstancePassthrough)
 				LoadedProperties[Tab] = true
 			end
 		else
@@ -455,7 +493,7 @@ local function LoadProperties(Object: Instance)
 	local Categories = Tree.CategorizedProperties
 	
 	for CategoryName, CategoryData in Categories do
-		LoadCategory(CategoryData, CategoryName)
+		LoadCategory(CategoryData, CategoryName, Object)
 	end
 end
 
