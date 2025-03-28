@@ -259,31 +259,32 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 				Opened = true
 			end
 		end)
-		
-		
-		Object.Parent.ChildRemoved:Connect(function(Thing)
-			if Thing == Object then UnregisterInstance(Object) end
-		end)
-	end
-		Frame.MouseEnter:Connect(function()
-			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
-		end)
 
-		Frame.MouseLeave:Connect(function()
-			Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
-	end)
-	
-		BodyClicker.MouseButton1Down:Connect(function()
-			if not Selections[Object] then
-				if not BindTracker.MultiSelect then
-					Unselect()
-				end
-				Select(Object, false, true)
-			else
-				Unselect(Object)
-				Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+		Object.Parent.ChildRemoved:Connect(function(Thing)
+			if Thing == Object then
+				UnregisterInstance(Object)
 			end
 		end)
+	end
+	Frame.MouseEnter:Connect(function()
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+	end)
+
+	Frame.MouseLeave:Connect(function()
+		Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
+	end)
+
+	BodyClicker.MouseButton1Down:Connect(function()
+		if not Selections[Object] then
+			if not BindTracker.MultiSelect then
+				Unselect()
+			end
+			Select(Object, false, true)
+		else
+			Unselect(Object)
+			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+		end
+	end)
 end
 
 function UnregisterInstance(Object: Instance, Container: Instance)
@@ -428,7 +429,7 @@ local function CreateExplorer(Root: Instance)
 		for _, Instance in pairs(game:GetDescendants()) do
 			if Utils:matchpattern(Pattern, Instance.Name) then
 				local Ancestry = Utils:GetAncestry(Instance, Root)
-				
+
 				for IDX, Item in Ancestry do
 					RegisterInstance(Item, RegisteredInstances[Item.Parent] or InstanceFrame, true)
 				end
