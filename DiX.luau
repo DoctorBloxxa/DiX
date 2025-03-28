@@ -348,6 +348,8 @@ function OpenInstance(Object: Instance)
 end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
+	local Hook
+	
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
@@ -390,6 +392,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			Box.Text = InstancePassthrough[PropertyData.Name]
 			Box.TextXAlignment = Enum.TextXAlignment.Left
 			
+			
+			
 			Box.FocusLost:connect(function(PressedEnter)	
 				if PressedEnter and tostring(tonumber(Box.Text))==Box.Text then
 					InstancePassthrough[PropertyData.Name] = Box.Text
@@ -398,13 +402,47 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 				Box.Text = InstancePassthrough[PropertyData.Name]
 			end)
 			
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if Box:IsFocused() then Box.FocusLost:Wait() end
+				Box.Text = InstancePassthrough[PropertyData.Name]
+			end)
 			
+		elseif ValueType == "bool" then
+			local Box = CreateValueBox("TextButton")
+			Box.TextColor3 = Color3.new(1,1,1)
+			
+			local OnColor = Color3.fromRGB(0, 139, 219)
+			local OffColor = Color3.fromRGB(219, 0, 82)
+			
+			local function ReflectValue()
+				Box.BackgroundColor3 = InstancePassthrough[PropertyData.Name] and OnColor or OffColor
+				Box.Text = InstancePassthrough[PropertyData.Name] and "true" or "false"
+			end
+			
+			Box.MouseButton1Down:connect(function()
+				InstancePassthrough[PropertyData.Name] = not InstancePassthrough[PropertyData.Name]
+				ReflectValue()
+			end)
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				ReflectValue()
+			end)
+			
+			ReflectValue()
 		end
 	
-		else
+		elseif PropertyData.ValueType.Category == "DataType" then
 	end
 	
-	return Frame
+	Frame.MouseEnter:Connect(function()
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+	end)
+
+	Frame.MouseLeave:Connect(function()
+		Frame.BackgroundColor3 = Colors.Primary
+	end)
+	
+	return Frame, Hook
 end
 
 local function LoadCategory(CategoryData: table, DataName: string, InstancePassthrough: Instance)
@@ -470,6 +508,7 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 		if not IsOpened then
 			local Properties = CategoryData
 			for Name, Data in Properties do
+				if Data.Tags and table.find(Data.Tags, "NotScriptable") then continue end
 				local Tab = LoadProperty(Data, Box, InstancePassthrough)
 				LoadedProperties[Tab] = true
 			end
