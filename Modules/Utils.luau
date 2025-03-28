@@ -62,4 +62,13 @@ function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 	return watchdog
 end
 
+function utils:matchpattern(Pattern: string, Target: string, CaseSensitive: boolean)
+	if CaseSensitive then
+		Pattern = string.lower(Pattern)
+		Target = string.lower(Target)
+	end
+
+	return string.find(Target, Pattern)
+end
+
 return utils

@@ -51,6 +51,7 @@ local RegisteredInstancesEvents = {
 	ChildAdded = {},
 	ChildRemoved = {},
 }
+local CannotSelect = false
 
 local function CreateBox(IsSelection: boolean)
 	local Box = Instance.new("SelectionBox")
@@ -65,42 +66,53 @@ local function Hover3D() -- I can't use interrupts for when Mouse.Target changes
 end
 
 local function Click3D()
-	if Hover3DBox.Adornee then
-		if not BindTracker.MultiSelect then Unselect() end
+	if Hover3DBox.Adornee and not CannotSelect then
+		if not BindTracker.MultiSelect then
+			Unselect()
+		end
 		Select(Hover3DBox.Adornee, true)
 	end
 end
 
 function Unselect(Instance: Instance)
 	if Instance ~= nil then
-		if not Selections[Instance] then return end
-		
+		if not Selections[Instance] then
+			return
+		end
+
 		Selections[Instance]:Remove()
 		Selections[Instance] = nil
 		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
 	else
-		for Selection, _ in pairs(Selections) do Unselect(Selection) end
+		for Selection, _ in pairs(Selections) do
+			Unselect(Selection)
+		end
 	end
 end
 
-function Select(Instance: Instance, Scroll: boolean)
-	if Selections[Instance] then return end
-	local Ancestry = Utils:GetAncestry(Instance)
-	Ancestry[#Ancestry] = nil
-	
-	for _, Branch in pairs(Ancestry) do
-		OpenInstance(Branch)
+function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
+	if Selections[Instance] then
+		return
 	end
-	
+
+	if not Basic then
+		local Ancestry = Utils:GetAncestry(Instance)
+		Ancestry[#Ancestry] = nil
+
+		for _, Branch in pairs(Ancestry) do
+			OpenInstance(Branch)
+		end
+	end
+
 	local Frame = RegisteredInstances[Instance].Parent
-	
+
 	Frame.BackgroundColor3 = Colors.Selected
-	
+
 	if Scroll then
 		local Offset = NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
 		InstanceFrame.CanvasPosition += NewV2(0, Frame.AbsolutePosition.Y - InstanceFrame.AbsolutePosition.Y)
 	end
-	
+
 	local Box = CreateBox()
 	Box.Adornee = Instance
 	Selections[Instance] = Box
@@ -152,8 +164,11 @@ end
 
 local function ExplorerDisable(Input: InputObject, GUIHook: boolean) end
 
-local function RegisterInstance(Object: Instance, Container: Instance)
-	local Opened = false
+local function RegisterInstance(Object: Instance, Container: Instance, Basic: boolean)
+	if RegisteredInstances[Object] then
+		return
+	end
+
 	local Children = {}
 
 	local Frame = Instance.new("Frame")
@@ -161,7 +176,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	Frame.Parent = Container or InstanceFrame
-	
+
 	local DropdownIcon = Instance.new("ImageLabel")
 	DropdownIcon.Size = UDim2.fromOffset(8, 8)
 	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
@@ -173,7 +188,7 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	DropdownIcon.ImageColor3 = Colors.Text
 	DropdownIcon.Rotation = -90
 	DropdownIcon.Parent = Frame
-	
+
 	local Dropdown = Instance.new("TextButton")
 	Dropdown.Size = UDim2.fromOffset(16, 16)
 	Dropdown.BorderSizePixel = 0
@@ -211,10 +226,10 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	Box.BorderSizePixel = 0
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
-	
+
 	local BodyClicker = Instance.new("TextButton")
 	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
-	BodyClicker.Position = UDim2.fromOffset(16,0)
+	BodyClicker.Position = UDim2.fromOffset(16, 0)
 	BodyClicker.BackgroundTransparency = 1
 	BodyClicker.Text = ""
 	BodyClicker.Parent = Frame
@@ -222,33 +237,37 @@ local function RegisterInstance(Object: Instance, Container: Instance)
 	RegisteredInstances[Object] = Box
 	Instance.new("UIListLayout").Parent = Box
 
-	Dropdown.MouseButton1Click:Connect(function()
-		if RegisteredInstancesEvents.ChildAdded[Object] then
-			CloseInstance(Object)
-			DropdownIcon.Rotation = -90
-		else
-			OpenInstance(Object)
-			DropdownIcon.Rotation = 0
-		end
-	end)
+	if not Basic then
+		Dropdown.MouseButton1Click:Connect(function()
+			if RegisteredInstancesEvents.ChildAdded[Object] then
+				CloseInstance(Object)
+				DropdownIcon.Rotation = -90
+			else
+				OpenInstance(Object)
+				DropdownIcon.Rotation = 0
+			end
+		end)
 
-	Frame.MouseEnter:Connect(function()
-		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, .75)
-	end)
+		Frame.MouseEnter:Connect(function()
+			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+		end)
 
-	Frame.MouseLeave:Connect(function()
-		Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
-	end)
-	
-	BodyClicker.MouseButton1Down:Connect(function()
-		if not Selections[Object] then
-			if not BindTracker.MultiSelect then Unselect() end
-			Select(Object)
-		else
-			Unselect(Object)
-			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, .75)
-		end
-	end)
+		Frame.MouseLeave:Connect(function()
+			Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
+		end)
+
+		BodyClicker.MouseButton1Down:Connect(function()
+			if not Selections[Object] then
+				if not BindTracker.MultiSelect then
+					Unselect()
+				end
+				Select(Object)
+			else
+				Unselect(Object)
+				Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+			end
+		end)
+	end
 end
 
 local function UnregisterInstance(Object: Instance, Container: Instance)
@@ -256,7 +275,7 @@ local function UnregisterInstance(Object: Instance, Container: Instance)
 	else
 		return
 	end
-	
+
 	Unselect(Object)
 	CloseInstance(Object)
 
@@ -288,21 +307,21 @@ function OpenInstance(Object: Instance)
 	else
 		return
 	end
-	
-	if RegisteredInstancesEvents.ChildAdded[Object] then return end
+
+	if RegisteredInstancesEvents.ChildAdded[Object] then
+		return
+	end
 
 	local Handle = RegisteredInstances[Object]
 
 	RegisteredInstancesEvents.ChildAdded[Object] = Object.ChildAdded:Connect(function(Child)
 		RegisterInstance(Child, Handle)
 	end)
-	
+
 	RegisteredInstancesEvents.ChildRemoved[Object] = Object.ChildRemoved:Connect(function(Child)
 		UnregisterInstance(Child)
 	end)
-	
-	
-	
+
 	--Quartermaster:Reset()
 	for _, Child in pairs(Object:GetChildren()) do
 		--Quartermaster:Tick()
@@ -376,17 +395,33 @@ local function CreateExplorer(Root: Instance)
 
 		BindTracker.AdjustProportions = false
 	end)
-	
+
 	SearchBox.FocusLost:Connect(function(IsEnter)
-		if not IsEnter then return end
+		if not IsEnter then
+			return
+		end
 		local Pattern = SearchBox.Text
 		ClearRoot(Root)
-		if Pattern == "" then 
+		CannotSelect = true
+		if Pattern == "" then
+			CannotSelect = false
 			CreateRoot(Root)
-			return 
+			return
+		end
+
+		for _, Instance in pairs(game:GetDescendants()) do
+			if Utils:matchpattern(Pattern, Instance.Name) then
+				local Ancestry = Utils:GetAncestry(Instance, Root)
+
+				for IDX, Item in Ancestry do
+					RegisterInstance(Item, RegisteredInstances[Item.Parent] or InstanceFrame, true)
+				end
+
+				Select(Ancestry[#Ancestry], false, true)
+			end
 		end
 	end)
-	
+
 	CreateRoot(Root)
 end
 
