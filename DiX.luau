@@ -417,8 +417,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
-					if PressedEnter and tostring(tonumber("0"..Box.Text)) == tostring(tonumber("0"..Box.Text)) then
-						InstancePassthrough[PropertyData.Name] = Box.Text
+					if PressedEnter and Utils:matchnumber(Box.Text) then
+						InstancePassthrough[PropertyData.Name] = Utils:matchnumber(Box.Text)
 					end
 
 					Box.Text = InstancePassthrough[PropertyData.Name]
@@ -490,10 +490,21 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
 					if PressedEnter then
-						InstancePassthrough[PropertyData.Name] = Box.Text
+						local Components = string.split(Box.Text, ",")
+						local X = Components[1]
+						local Y = Components[2]
+						local Z = Components[3]
+						
+						if X and Y and Z and Utils:matchnumber(X) and Utils:matchnumber(Y) and Utils:matchnumber(Z) then
+							warn(X, Y, Z)
+							
+							X = Utils:matchnumber(X)
+							Y = Utils:matchnumber(Y)
+							Z = Utils:matchnumber(Z)
+						end
 					end
 
-					Box.Text = InstancePassthrough[PropertyData.Name]
+					ReflectValue()
 				end)
 			end
 
