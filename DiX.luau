@@ -46,6 +46,8 @@ local GestureHandle, EnableHandle, DisableHandle
 local Hover3DHandle, Click3DHandle, Hover3DBox
 local BrowserProportion = 0.65
 local Selections = {}
+local SelectionCount = 0
+local LoadedPropertyCategories = {}
 local RegisteredInstances = {}
 local RegisteredInstancesEvents = {
 	ChildAdded = {},
@@ -83,6 +85,8 @@ function Unselect(Instance: Instance)
 		Selections[Instance]:Remove()
 		Selections[Instance] = nil
 		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
+
+		SelectionCount -= 1
 	else
 		for Selection, _ in pairs(Selections) do
 			Unselect(Selection)
@@ -94,6 +98,8 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	if Selections[Instance] then
 		return
 	end
+
+	SelectionCount += 1
 
 	if not Basic then
 		local Ancestry = Utils:GetAncestry(Instance)
@@ -116,6 +122,11 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	local Box = CreateBox()
 	Box.Adornee = Instance
 	Selections[Instance] = Box
+
+	if SelectionCount == 1 then
+		ClearProperties()
+		LoadProperties(Instance)
+	end
 end
 
 local function AdjustExplorer()
@@ -352,7 +363,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
-	Frame.AutomaticSize = Enum.AutomaticSize.XY
+	Frame.AutomaticSize = Enum.AutomaticSize.Y
 	Frame.BackgroundColor3 = Colors.Primary
 	Frame.Parent = Parent
 
@@ -361,7 +372,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	Name.Position = UDim2.fromOffset(8, 0)
 	Name.Text = PropertyData.Name
 	Name.TextSize = 8
-	Name.AutomaticSize = Enum.AutomaticSize.X
+	--Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
 	Name.BackgroundTransparency = 1
 	Name.TextColor3 = Colors.Text
@@ -429,12 +440,42 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
 	elseif PropertyData.ValueType.Category == "Enum" then
-		local Box = CreateValueBox("TextLabel") -- We'll get to actually editing enums later
+		local Box = CreateValueBox("TextButton") -- We'll get to actually editing enums later
+
+		local Opened = false
 		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
+		local Buttons = {}
 
 		local function ReflectValue()
-			warn(InstancePassthrough[PropertyData.Name].Value)
-			Box.Text = ValidEnums[InstancePassthrough[PropertyData.Name].Value + 1].Name
+			Box.Text = InstancePassthrough[PropertyData.Name].Name
+		end
+
+		if not (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) then
+			Box.MouseButton1Down:connect(function()
+				if not Opened then
+					for IDX, Enum in pairs(ValidEnums) do
+						local Button = CreateValueBox("TextButton")
+						Button.BackgroundColor3 = Button.BackgroundColor3:Lerp(Color3.new(1, 1, 1), 0.5)
+						Button.Parent = Box
+						Button.Position = UDim2.new(0, 0, 0, 16 * IDX)
+						Button.Size = UDim2.new(1, 0, 0, 16)
+						Button.Text = ValidEnums[IDX].Name
+
+						Buttons[Button] = Enum
+
+						Button.MouseButton1Down:connect(function()
+							InstancePassthrough[PropertyData.Name] = Enum.Value
+							ReflectValue()
+						end)
+					end
+				else
+					for Button, _ in pairs(Buttons) do
+						Button:Remove()
+						Buttons[Button] = nil
+					end
+				end
+				Opened = not Opened
+			end)
 		end
 
 		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
@@ -455,7 +496,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	return Frame, Hook
 end
 
-local function LoadCategory(CategoryData: table, DataName: string, InstancePassthrough: Instance)
+local function LoadCategory(CategoryData: table, CategoryName: string, InstancePassthrough: Instance)
 	local IsOpened = false
 	local LoadedProperties = {}
 
@@ -487,7 +528,7 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 	local Name = Instance.new("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(24, 4)
-	Name.Text = DataName
+	Name.Text = CategoryName
 	Name.TextSize = 8
 	Name.AutomaticSize = Enum.AutomaticSize.X
 	Name.BorderSizePixel = 0
@@ -533,9 +574,18 @@ local function LoadCategory(CategoryData: table, DataName: string, InstancePasst
 		IsOpened = not IsOpened
 		DropdownIcon.Rotation = IsOpened and 0 or -90
 	end)
+
+	LoadedPropertyCategories[CategoryName] = Frame
 end
 
-local function LoadProperties(Object: Instance)
+function ClearProperties()
+	for IDX, Box in LoadedPropertyCategories do
+		Box:Remove()
+		LoadedPropertyCategories[IDX] = nil
+	end
+end
+
+function LoadProperties(Object: Instance)
 	if not AlmanacData[2] then
 		return
 	end
@@ -654,4 +704,3 @@ local function CreateExplorer(Root: Instance)
 end
 
 CreateExplorer(game)
-LoadProperties(workspace)
