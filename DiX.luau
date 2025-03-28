@@ -417,7 +417,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
-					if PressedEnter and tostring(tonumber(Box.Text)) == Box.Text then
+					if PressedEnter and tostring(tonumber("0"..Box.Text)) == Box.Text then
 						InstancePassthrough[PropertyData.Name] = Box.Text
 					end
 
