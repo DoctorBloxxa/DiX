@@ -170,6 +170,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	end
 
 	local Children = {}
+	local Opened = Basic
 
 	local Frame = Instance.new("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
@@ -186,7 +187,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	DropdownIcon.BackgroundTransparency = 1
 	DropdownIcon.ScaleType = Enum.ScaleType.Fit
 	DropdownIcon.ImageColor3 = Colors.Text
-	DropdownIcon.Rotation = -90
+	DropdownIcon.Rotation = Opened and 0 or -90
 	DropdownIcon.Parent = Frame
 
 	local Dropdown = Instance.new("TextButton")
@@ -246,15 +247,32 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 				DropdownIcon.Rotation = 0
 			end
 		end)
-
+	else
+		Dropdown.MouseButton1Click:Connect(function()
+			if Opened then
+				Box.Visible = false
+				DropdownIcon.Rotation = -90
+				Opened = false
+			else
+				Box.Visible = true
+				DropdownIcon.Rotation = 0
+				Opened = true
+			end
+		end)
+		
+		
+		Object.Parent.ChildRemoved:Connect(function(Thing)
+			if Thing == Object then UnregisterInstance(Object) end
+		end)
+	end
 		Frame.MouseEnter:Connect(function()
 			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 		end)
 
 		Frame.MouseLeave:Connect(function()
 			Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
-		end)
-	end
+	end)
+	
 		BodyClicker.MouseButton1Down:Connect(function()
 			if not Selections[Object] then
 				if not BindTracker.MultiSelect then
@@ -268,7 +286,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 		end)
 end
 
-local function UnregisterInstance(Object: Instance, Container: Instance)
+function UnregisterInstance(Object: Instance, Container: Instance)
 	if RegisteredInstances[Object] then
 	else
 		return
@@ -410,14 +428,10 @@ local function CreateExplorer(Root: Instance)
 		for _, Instance in pairs(game:GetDescendants()) do
 			if Utils:matchpattern(Pattern, Instance.Name) then
 				local Ancestry = Utils:GetAncestry(Instance, Root)
-				local End = Ancestry[#Ancestry]
-				table.remove(Ancestry, #Ancestry)
 				
 				for IDX, Item in Ancestry do
 					RegisterInstance(Item, RegisteredInstances[Item.Parent] or InstanceFrame, true)
 				end
-				
-				RegisterInstance(End, RegisteredInstances[End.Parent] or InstanceFrame, false)
 			end
 		end
 	end)
