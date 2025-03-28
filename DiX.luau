@@ -41,7 +41,7 @@ local function GetInstanceIcon(ClassName: string)
 	return Vector2.new(16, 0) * (InstanceIcons[ClassName] or 0)
 end
 
-local ExplorerInstance, ExplorerBody, SearchBox, InstanceFrame, PropertyFrame
+local ExplorerInstance, ExplorerBody, SearchBox, FilterBox, InstanceFrame, PropertyFrame
 local GestureHandle, EnableHandle, DisableHandle
 local Hover3DHandle, Click3DHandle, Hover3DBox
 local BrowserProportion = 0.65
@@ -123,7 +123,8 @@ local function AdjustExplorer()
 	BrowserProportion = math.clamp(BrowserProportion, 0.045, 1)
 
 	InstanceFrame.Size = UDim2.new(1, 0, BrowserProportion, -32)
-	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, 0)
+	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
+	FilterBox.Position = UDim2.new(1, 0, BrowserProportion, 0)
 end
 
 local function ExplorerGestures(Input: InputObject, GUIHook: boolean)
@@ -387,14 +388,23 @@ local function CreateExplorer(Root: Instance)
 	InstanceFrame.Parent = ExplorerBody
 	InstanceFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	InstanceFrame.CanvasSize = UDim2.new()
-
+	
 	PropertyFrame = NewInstance("ScrollingFrame")
 	PropertyFrame.AnchorPoint = NewV2(1, 1)
-	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, 0)
+	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
 	PropertyFrame.Position = UDim2.new(1, 0, 1, 0)
 	PropertyFrame.Parent = ExplorerBody
 	PropertyFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	PropertyFrame.CanvasSize = UDim2.new()
+
+	FilterBox = NewInstance("TextBox")
+	FilterBox.AnchorPoint = NewV2(1, 0)
+	FilterBox.Size = UDim2.new(1, 0, 0, 16)
+	FilterBox.Position = UDim2.new(1, 0, BrowserProportion, 0)
+	FilterBox.Text = ""
+	FilterBox.PlaceholderText = "Filter: "
+	FilterBox.BackgroundColor3 = Colors.Primary
+	FilterBox.Parent = ExplorerBody
 
 	Instance.new("UIListLayout").Parent = InstanceFrame
 	Instance.new("UIListLayout").Parent = PropertyFrame
