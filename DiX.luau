@@ -390,7 +390,6 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			
 			local Box = CreateValueBox("TextBox")
 			Box.Text = InstancePassthrough[PropertyData.Name]
-			Box.TextXAlignment = Enum.TextXAlignment.Left
 			
 			
 			
@@ -435,7 +434,6 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox("TextLabel") -- We'll get to actually editing enums later
-		Box.TextXAlignment = Enum.TextXAlignment.Left
 		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
 		
 		local function ReflectValue()
