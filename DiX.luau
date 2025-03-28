@@ -57,7 +57,7 @@ local RegisteredInstancesEvents = {
 local CannotSelect = false
 
 local function CreateBox(IsSelection: boolean)
-	local Box = Instance.new("SelectionBox")
+	local Box = NewInstance("SelectionBox")
 	Box.Parent = Recipient
 	Box.Color3 = IsSelection and Colors.Selected or Colors.Hover3D
 	Box.LineThickness = 0.025
@@ -189,13 +189,13 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	local Children = {}
 	local Opened = Basic
 
-	local Frame = Instance.new("Frame")
+	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	Frame.Parent = Container or InstanceFrame
 
-	local DropdownIcon = Instance.new("ImageLabel")
+	local DropdownIcon = NewInstance("ImageLabel")
 	DropdownIcon.Size = UDim2.fromOffset(8, 8)
 	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
 	DropdownIcon.Position = UDim2.fromOffset(8, 8)
@@ -207,14 +207,14 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	DropdownIcon.Rotation = Opened and 0 or -90
 	DropdownIcon.Parent = Frame
 
-	local Dropdown = Instance.new("TextButton")
+	local Dropdown = NewInstance("TextButton")
 	Dropdown.Size = UDim2.fromOffset(16, 16)
 	Dropdown.BorderSizePixel = 0
 	Dropdown.BackgroundTransparency = 1
 	Dropdown.Text = ""
 	Dropdown.Parent = Frame
 
-	local Icon = Instance.new("ImageLabel")
+	local Icon = NewInstance("ImageLabel")
 	Icon.Size = UDim2.fromOffset(16, 16)
 	Icon.Position = UDim2.fromOffset(16, 0)
 	Icon.ImageRectSize = NewV2(16, 16)
@@ -225,7 +225,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Icon.BackgroundTransparency = 1
 	Icon.Parent = Frame
 
-	local Name = Instance.new("TextLabel")
+	local Name = NewInstance("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(40, 0)
 	Name.Text = Object.Name
@@ -237,7 +237,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
 
-	local Box = Instance.new("Frame")
+	local Box = NewInstance("Frame")
 	Box.Size = UDim2.new(1, -16, 0, 0)
 	Box.Position = UDim2.fromOffset(16, 16)
 	Box.AutomaticSize = Enum.AutomaticSize.XY
@@ -245,7 +245,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
 
-	local BodyClicker = Instance.new("TextButton")
+	local BodyClicker = NewInstance("TextButton")
 	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
 	BodyClicker.Position = UDim2.fromOffset(16, 0)
 	BodyClicker.BackgroundTransparency = 1
@@ -253,7 +253,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	BodyClicker.Parent = Frame
 
 	RegisteredInstances[Object] = Box
-	Instance.new("UIListLayout").Parent = Box
+	NewInstance("UIListLayout").Parent = Box
 	if not Basic then
 		Dropdown.MouseButton1Click:Connect(function()
 			if RegisteredInstancesEvents.ChildAdded[Object] then
@@ -375,13 +375,13 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	local Hook
 	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly"))
 
-	local Frame = Instance.new("Frame")
+	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.Y
 	Frame.BackgroundColor3 = Colors.Primary
 	Frame.Parent = Parent
 
-	local Name = Instance.new("TextLabel")
+	local Name = NewInstance("TextLabel")
 	Name.Size = UDim2.new(0.5, -8, 0, 16)
 	Name.Position = UDim2.fromOffset(8, 0)
 	Name.Text = PropertyData.Name
@@ -396,7 +396,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	local ValueBox
 
 	local function CreateValueBox(Class)
-		local Box = Instance.new(Class)
+		local Box = NewInstance(Class)
 		Box.Size = UDim2.new(1, -8, 0, 16)
 		Box.AnchorPoint = NewV2(0, 0)
 		Box.Position = UDim2.fromScale(1, 0)
@@ -538,13 +538,13 @@ local function LoadCategory(CategoryData: table, CategoryName: string, InstanceP
 	local IsOpened = false
 	local LoadedProperties = {}
 
-	local Frame = Instance.new("Frame")
+	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 24)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Colors.Secondary
 	Frame.Parent = PropertyFrame
 
-	local DropdownIcon = Instance.new("ImageLabel")
+	local DropdownIcon = NewInstance("ImageLabel")
 	DropdownIcon.Size = UDim2.fromOffset(8, 8)
 	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
 	DropdownIcon.Position = UDim2.fromOffset(12, 12)
@@ -556,14 +556,14 @@ local function LoadCategory(CategoryData: table, CategoryName: string, InstanceP
 	DropdownIcon.Rotation = -90
 	DropdownIcon.Parent = Frame
 
-	local Dropdown = Instance.new("TextButton")
+	local Dropdown = NewInstance("TextButton")
 	Dropdown.Size = UDim2.fromOffset(24, 24)
 	Dropdown.BorderSizePixel = 0
 	Dropdown.BackgroundTransparency = 1
 	Dropdown.Text = ""
 	Dropdown.Parent = Frame
 
-	local Name = Instance.new("TextLabel")
+	local Name = NewInstance("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(24, 4)
 	Name.Text = CategoryName
@@ -575,7 +575,7 @@ local function LoadCategory(CategoryData: table, CategoryName: string, InstanceP
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
 
-	local Box = Instance.new("Frame")
+	local Box = NewInstance("Frame")
 	Box.Size = UDim2.new(1, -16, 0, 0)
 	Box.Position = UDim2.fromOffset(24, 24)
 	Box.AutomaticSize = Enum.AutomaticSize.XY
@@ -583,7 +583,7 @@ local function LoadCategory(CategoryData: table, CategoryName: string, InstanceP
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
 
-	Instance.new("UIListLayout").Parent = Box
+	NewInstance("UIListLayout").Parent = Box
 
 	Frame.MouseEnter:Connect(function()
 		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
@@ -697,8 +697,8 @@ local function CreateExplorer(Root: Instance)
 	FilterBox.BackgroundColor3 = Colors.Primary
 	FilterBox.Parent = ExplorerBody
 
-	Instance.new("UIListLayout").Parent = InstanceFrame
-	Instance.new("UIListLayout").Parent = PropertyFrame
+	NewInstance("UIListLayout").Parent = InstanceFrame
+	NewInstance("UIListLayout").Parent = PropertyFrame
 
 	ExplorerBody.MouseEnter:Connect(function()
 		GestureHandle = UIS.InputChanged:Connect(ExplorerGestures)
