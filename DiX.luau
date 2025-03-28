@@ -34,7 +34,7 @@ local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
-local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
+local AlmanacData = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
 local Quartermaster = Utils:watchdog(1 / 32, wait)
 
 local function GetInstanceIcon(ClassName: string)
@@ -347,6 +347,93 @@ function OpenInstance(Object: Instance)
 	end
 end
 
+local function LoadProperty(Object: Instance, Property: table)
+	local Frame = Instance.new("Frame")
+	Frame.Size = UDim2.new(1, 0, 0, 16)
+	Frame.AutomaticSize = Enum.AutomaticSize.XY
+	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
+
+	local Name = Instance.new("TextLabel")
+	Name.Size = UDim2.new(1, -40, 0, 16)
+	Name.Position = UDim2.fromOffset(40, 0)
+	Name.Text = Object.Name
+	Name.TextSize = 8
+	Name.AutomaticSize = Enum.AutomaticSize.X
+	Name.BorderSizePixel = 0
+	Name.BackgroundTransparency = 1
+	Name.TextColor3 = Colors.Text
+	Name.TextXAlignment = Enum.TextXAlignment.Left
+	Name.Parent = Frame
+end
+
+local function LoadCategory(CategoryData: table)
+	local Frame = Instance.new("Frame")
+	Frame.Size = UDim2.new(1, 0, 0, 16)
+	Frame.AutomaticSize = Enum.AutomaticSize.XY
+	Frame.BackgroundColor3 = Colors.Primary
+	Frame.Parent = PropertyFrame
+
+	local DropdownIcon = Instance.new("ImageLabel")
+	DropdownIcon.Size = UDim2.fromOffset(8, 8)
+	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
+	DropdownIcon.Position = UDim2.fromOffset(8, 8)
+	DropdownIcon.Image = "rbxasset://textures/ui/dropdown_arrow@2x.png"
+	DropdownIcon.BorderSizePixel = 0
+	DropdownIcon.BackgroundTransparency = 1
+	DropdownIcon.ScaleType = Enum.ScaleType.Fit
+	DropdownIcon.ImageColor3 = Colors.Text
+	DropdownIcon.Rotation = -90
+	DropdownIcon.Parent = Frame
+
+	local Dropdown = Instance.new("TextButton")
+	Dropdown.Size = UDim2.fromOffset(16, 16)
+	Dropdown.BorderSizePixel = 0
+	Dropdown.BackgroundTransparency = 1
+	Dropdown.Text = ""
+	Dropdown.Parent = Frame
+
+
+	local Name = Instance.new("TextLabel")
+	Name.Size = UDim2.new(1, -40, 0, 16)
+	Name.Position = UDim2.fromOffset(40, 0)
+	Name.Text = Object.Name
+	Name.TextSize = 8
+	Name.AutomaticSize = Enum.AutomaticSize.X
+	Name.BorderSizePixel = 0
+	Name.BackgroundTransparency = 1
+	Name.TextColor3 = Colors.Text
+	Name.TextXAlignment = Enum.TextXAlignment.Left
+	Name.Parent = Frame
+
+	local Box = Instance.new("Frame")
+	Box.Size = UDim2.new(1, -16, 0, 0)
+	Box.Position = UDim2.fromOffset(16, 16)
+	Box.AutomaticSize = Enum.AutomaticSize.XY
+	Box.BorderSizePixel = 0
+	Box.BackgroundTransparency = 1
+	Box.Parent = Frame
+
+	local BodyClicker = Instance.new("TextButton")
+	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
+	BodyClicker.Position = UDim2.fromOffset(16, 0)
+	BodyClicker.BackgroundTransparency = 1
+	BodyClicker.Text = ""
+	BodyClicker.Parent = Frame
+end
+
+local function LoadProperties(Object: Instance)
+	if not AlmanacData[2] then return end
+	
+	local Almanac = AlmanacData[1]
+	
+	local Tree = Almanac[Object.ClassName]
+	local Categories = Tree.CategorizedProperties
+	
+	for _, CategoryData in Categories do
+		LoadCategory(CategoryData)
+	end
+end
+
 local function CreateRoot(Root)
 	for _, Instance in pairs(Root:GetChildren()) do
 		RegisterInstance(Instance)
@@ -388,7 +475,7 @@ local function CreateExplorer(Root: Instance)
 	InstanceFrame.Parent = ExplorerBody
 	InstanceFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	InstanceFrame.CanvasSize = UDim2.new()
-
+	
 	PropertyFrame = NewInstance("ScrollingFrame")
 	PropertyFrame.AnchorPoint = NewV2(1, 1)
 	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
@@ -451,3 +538,4 @@ local function CreateExplorer(Root: Instance)
 end
 
 CreateExplorer(game)
+LoadProperties(workspace)
