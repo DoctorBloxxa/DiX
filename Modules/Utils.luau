@@ -63,12 +63,13 @@ function utils:watchdog(Budget: number, YieldMethod: (any) -> any)
 end
 
 function utils:matchpattern(Pattern: string, Target: string, CaseSensitive: boolean)
-	if not CaseSensitive then
-		Pattern = string.lower(Pattern)
-		Target = string.lower(Target)
-	end
-
+	if not CaseSensitive then Pattern = string.lower(Pattern) Target = string.lower(Target) end
+	
 	return string.find(Target, Pattern)
+end
+
+function utils:matchnumber(Text)
+	return tostring(tonumber("0"..Text)) == "0"..Text
 end
 
 return utils

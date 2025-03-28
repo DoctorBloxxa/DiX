@@ -477,6 +477,35 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			ReflectValue()
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
+		local ValueType = PropertyData.ValueType.Name
+		
+		if ValueType == "Vector3" then
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
+			
+			local function ReflectValue()
+				local Vector = InstancePassthrough[PropertyData.Name]
+				Box.Text = string.format("%d, %d, %d", Vector.X, Vector.Y, Vector.Z)
+			end
+
+			if not ReadOnly then
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter then
+						InstancePassthrough[PropertyData.Name] = Box.Text
+					end
+
+					Box.Text = InstancePassthrough[PropertyData.Name]
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
+				ReflectValue()
+			end)
+			
+			ReflectValue()
+		end
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel") -- We'll get to actually editing enums later
 
