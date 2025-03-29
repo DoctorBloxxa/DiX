@@ -4,6 +4,9 @@ Replacement for DeX, an instance explorer.
 
 This intends to be lightweight and easy to use.
 
+Here's a screenshot of commit 1201efe214358131e785c14e9f7fbf0385329d75 (canary branch):![Screenshot From 2025-03-29 16-14-31](https://github.com/user-attachments/assets/897e519d-afd9-4e19-885b-e4a85436ddb4)
+
+
 
 **The stable branch is master** (as in, master record.)
 
