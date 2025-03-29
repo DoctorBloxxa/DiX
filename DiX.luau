@@ -30,11 +30,11 @@ local NewV3 = Vector3.new
 local NewInstance = Instance.new
 
 local Spritesheet = "rbxasset://textures/ClassImages.png"
-local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
+local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/master/"
 
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
-local Almanac = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
+local AlmanacData = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
 local Quartermaster = Utils:watchdog(1 / 32, wait)
 
 local function GetInstanceIcon(ClassName: string)
@@ -46,15 +46,18 @@ local GestureHandle, EnableHandle, DisableHandle
 local Hover3DHandle, Click3DHandle, Hover3DBox
 local BrowserProportion = 0.65
 local Selections = {}
+local SelectionCount = 0
+local LoadedPropertyCategories = {}
 local RegisteredInstances = {}
 local RegisteredInstancesEvents = {
 	ChildAdded = {},
 	ChildRemoved = {},
+	NameChanged = {},
 }
 local CannotSelect = false
 
 local function CreateBox(IsSelection: boolean)
-	local Box = Instance.new("SelectionBox")
+	local Box = NewInstance("SelectionBox")
 	Box.Parent = Recipient
 	Box.Color3 = IsSelection and Colors.Selected or Colors.Hover3D
 	Box.LineThickness = 0.025
@@ -83,10 +86,16 @@ function Unselect(Instance: Instance)
 		Selections[Instance]:Remove()
 		Selections[Instance] = nil
 		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
+
+		SelectionCount -= 1
 	else
 		for Selection, _ in pairs(Selections) do
 			Unselect(Selection)
 		end
+	end
+
+	if SelectionCount == 0 then
+		ClearProperties()
 	end
 end
 
@@ -94,6 +103,8 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	if Selections[Instance] then
 		return
 	end
+
+	SelectionCount += 1
 
 	if not Basic then
 		local Ancestry = Utils:GetAncestry(Instance)
@@ -116,6 +127,11 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	local Box = CreateBox()
 	Box.Adornee = Instance
 	Selections[Instance] = Box
+
+	if SelectionCount == 1 then
+		ClearProperties()
+		LoadProperties(Instance)
+	end
 end
 
 local function AdjustExplorer()
@@ -173,13 +189,13 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	local Children = {}
 	local Opened = Basic
 
-	local Frame = Instance.new("Frame")
+	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
 	Frame.AutomaticSize = Enum.AutomaticSize.XY
 	Frame.BackgroundColor3 = Selections[Object] and Colors.Selected or Colors.Primary
 	Frame.Parent = Container or InstanceFrame
 
-	local DropdownIcon = Instance.new("ImageLabel")
+	local DropdownIcon = NewInstance("ImageLabel")
 	DropdownIcon.Size = UDim2.fromOffset(8, 8)
 	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
 	DropdownIcon.Position = UDim2.fromOffset(8, 8)
@@ -191,14 +207,14 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	DropdownIcon.Rotation = Opened and 0 or -90
 	DropdownIcon.Parent = Frame
 
-	local Dropdown = Instance.new("TextButton")
+	local Dropdown = NewInstance("TextButton")
 	Dropdown.Size = UDim2.fromOffset(16, 16)
 	Dropdown.BorderSizePixel = 0
 	Dropdown.BackgroundTransparency = 1
 	Dropdown.Text = ""
 	Dropdown.Parent = Frame
 
-	local Icon = Instance.new("ImageLabel")
+	local Icon = NewInstance("ImageLabel")
 	Icon.Size = UDim2.fromOffset(16, 16)
 	Icon.Position = UDim2.fromOffset(16, 0)
 	Icon.ImageRectSize = NewV2(16, 16)
@@ -209,7 +225,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Icon.BackgroundTransparency = 1
 	Icon.Parent = Frame
 
-	local Name = Instance.new("TextLabel")
+	local Name = NewInstance("TextLabel")
 	Name.Size = UDim2.new(1, -40, 0, 16)
 	Name.Position = UDim2.fromOffset(40, 0)
 	Name.Text = Object.Name
@@ -221,7 +237,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Name.TextXAlignment = Enum.TextXAlignment.Left
 	Name.Parent = Frame
 
-	local Box = Instance.new("Frame")
+	local Box = NewInstance("Frame")
 	Box.Size = UDim2.new(1, -16, 0, 0)
 	Box.Position = UDim2.fromOffset(16, 16)
 	Box.AutomaticSize = Enum.AutomaticSize.XY
@@ -229,7 +245,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	Box.BackgroundTransparency = 1
 	Box.Parent = Frame
 
-	local BodyClicker = Instance.new("TextButton")
+	local BodyClicker = NewInstance("TextButton")
 	BodyClicker.Size = UDim2.new(1, -16, 0, 16)
 	BodyClicker.Position = UDim2.fromOffset(16, 0)
 	BodyClicker.BackgroundTransparency = 1
@@ -237,7 +253,7 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	BodyClicker.Parent = Frame
 
 	RegisteredInstances[Object] = Box
-	Instance.new("UIListLayout").Parent = Box
+	NewInstance("UIListLayout").Parent = Box
 	if not Basic then
 		Dropdown.MouseButton1Click:Connect(function()
 			if RegisteredInstancesEvents.ChildAdded[Object] then
@@ -286,6 +302,10 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 		end
 	end)
+
+	RegisteredInstancesEvents.NameChanged[Object] = Object:GetPropertyChangedSignal("Name"):Connect(function()
+		Name.Text = Object.Name
+	end)
 end
 
 function UnregisterInstance(Object: Instance, Container: Instance)
@@ -296,6 +316,9 @@ function UnregisterInstance(Object: Instance, Container: Instance)
 
 	Unselect(Object)
 	CloseInstance(Object)
+
+	RegisteredInstancesEvents.NameChanged[Object]:Disconnect()
+	RegisteredInstancesEvents.NameChanged[Object] = nil
 
 	RegisteredInstances[Object].Parent:Remove()
 	RegisteredInstances[Object] = nil
@@ -347,6 +370,335 @@ function OpenInstance(Object: Instance)
 	end
 end
 
+local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
+	local Hook
+	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly"))
+
+	local Frame = NewInstance("Frame")
+	Frame.Size = UDim2.new(1, 0, 0, 16)
+	Frame.AutomaticSize = Enum.AutomaticSize.Y
+	Frame.BackgroundColor3 = Colors.Primary
+	Frame.Parent = Parent
+
+	local Name = NewInstance("TextLabel")
+	Name.Size = UDim2.new(0.5, -8, 0, 16)
+	Name.Position = UDim2.fromOffset(8, 0)
+	Name.Text = PropertyData.Name
+	Name.TextSize = 8
+	--Name.AutomaticSize = Enum.AutomaticSize.X
+	Name.BorderSizePixel = 0
+	Name.BackgroundTransparency = 1
+	Name.TextColor3 = Colors.Text
+	Name.TextXAlignment = Enum.TextXAlignment.Left
+	Name.Parent = Frame
+
+	local ValueBox
+
+	local function CreateValueBox(Class)
+		local Box = NewInstance(Class)
+		Box.Size = UDim2.new(1, -8, 0, 16)
+		Box.AnchorPoint = NewV2(0, 0)
+		Box.Position = UDim2.fromScale(1, 0)
+		Box.BorderSizePixel = 0
+		Box.BackgroundTransparency = 0
+		Box.BackgroundColor3 = Colors.Secondary
+		Box.Parent = Name
+
+		return Box
+	end
+
+	if PropertyData.ValueType.Category == "Primitive" then
+		local ValueType = PropertyData.ValueType.Name
+
+		if ValueType == "float" then
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
+			Box.Text = InstancePassthrough[PropertyData.Name]
+
+			if not ReadOnly then
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter and Utils:matchnumber(Box.Text) then
+						InstancePassthrough[PropertyData.Name] = Utils:matchnumber(Box.Text)
+					end
+
+					Box.Text = InstancePassthrough[PropertyData.Name]
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if not ReadOnly and Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
+				Box.Text = InstancePassthrough[PropertyData.Name]
+			end)
+		elseif ValueType == "string" then
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
+			Box.Text = InstancePassthrough[PropertyData.Name]
+
+			if not ReadOnly then
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter then
+						InstancePassthrough[PropertyData.Name] = Box.Text
+					end
+
+					Box.Text = InstancePassthrough[PropertyData.Name]
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if not ReadOnly and Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
+				Box.Text = InstancePassthrough[PropertyData.Name]
+			end)
+		elseif ValueType == "bool" then
+			local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
+			Box.TextColor3 = Color3.new(1, 1, 1)
+
+			local OnColor = Color3.fromRGB(0, 139, 219)
+			local OffColor = Color3.fromRGB(219, 0, 82)
+
+			local function ReflectValue()
+				Box.BackgroundColor3 = InstancePassthrough[PropertyData.Name] and OnColor or OffColor
+				Box.Text = InstancePassthrough[PropertyData.Name] and "true" or "false"
+			end
+
+			if not ReadOnly then
+				Box.MouseButton1Down:connect(function()
+					InstancePassthrough[PropertyData.Name] = not InstancePassthrough[PropertyData.Name]
+					ReflectValue()
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				ReflectValue()
+			end)
+
+			ReflectValue()
+		end
+	elseif PropertyData.ValueType.Category == "DataType" then
+		local ValueType = PropertyData.ValueType.Name
+		
+		local function SetupCSVBox(Class: any, stringf: string, ...)
+			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
+			local Params = {...}
+			
+			local function ReflectValue()
+				local Object = InstancePassthrough[PropertyData.Name]
+				
+				local Components = {}
+				for IDX, Parameter in Params do
+					
+					if typeof(Parameter) == "table" then		
+						local Setting = Object
+						
+						for _, Subparameter in Parameter do
+							Setting = Setting[Subparameter]
+						end
+						
+						Components[IDX] = Setting
+					else
+						Components[IDX] = Object[Parameter]
+					end
+				end
+				
+				Box.Text = string.format(stringf, table.unpack(Components))
+			end
+
+			if not ReadOnly then
+				Box.ClearTextOnFocus = false
+
+				Box.FocusLost:connect(function(PressedEnter)
+					if PressedEnter then
+						local Components = string.split(Box.Text, ",")
+						for IDX, Component in Components do
+							Components[IDX] = tonumber(Utils:matchnumber(Component:gsub(" ", "")))
+						end
+
+						InstancePassthrough[PropertyData.Name] = Class.new(table.unpack(Components))
+					end
+
+					ReflectValue()
+				end)
+			end
+
+			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+				if not ReadOnly and Box:IsFocused() then
+					Box.FocusLost:Wait()
+				end
+				ReflectValue()
+			end)
+
+			ReflectValue()
+		end
+
+		if ValueType == "Vector3" then
+			SetupCSVBox(Vector3, "%d, %d, %d", "X", "Y", "Z")
+		elseif ValueType == "Vector2" then
+			SetupCSVBox(Vector2, "%d, %d", "X", "Y")
+		elseif ValueType == "UDim2" then
+			SetupCSVBox(UDim2, "%d, %d, %d, %d", {"X", "Scale"}, {"X", "Offset"}, {"Y", "Scale"}, {"Y", "Offset"})
+		end
+	elseif PropertyData.ValueType.Category == "Enum" then
+		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel") -- We'll get to actually editing enums later
+
+		local Opened = false
+		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
+		local Buttons = {}
+
+		local function ReflectValue()
+			Box.Text = InstancePassthrough[PropertyData.Name].Name
+		end
+
+		if not ReadOnly then
+			Box.MouseButton1Down:connect(function()
+				if not Opened then
+					for IDX, Enum in pairs(ValidEnums) do
+						local Button = CreateValueBox("TextButton")
+						Button.BackgroundColor3 = Button.BackgroundColor3:Lerp(Color3.new(1, 1, 1), 0.5)
+						Button.Parent = Box
+						Button.Position = UDim2.new(0, 0, 0, 16 * IDX)
+						Button.Size = UDim2.new(1, 0, 0, 16)
+						Button.Text = ValidEnums[IDX].Name
+
+						Buttons[Button] = Enum
+
+						Button.MouseButton1Down:connect(function()
+							InstancePassthrough[PropertyData.Name] = Enum.Value
+							ReflectValue()
+						end)
+					end
+				else
+					for Button, _ in pairs(Buttons) do
+						Button:Remove()
+						Buttons[Button] = nil
+					end
+				end
+				Opened = not Opened
+			end)
+		end
+
+		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+			ReflectValue()
+		end)
+
+		ReflectValue()
+	end
+
+	Frame.MouseEnter:Connect(function()
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+	end)
+
+	Frame.MouseLeave:Connect(function()
+		Frame.BackgroundColor3 = Colors.Primary
+	end)
+
+	return Frame, Hook
+end
+
+local function LoadCategory(CategoryData: table, CategoryName: string, InstancePassthrough: Instance)
+	local IsOpened = false
+	local LoadedProperties = {}
+
+	local Frame = NewInstance("Frame")
+	Frame.Size = UDim2.new(1, 0, 0, 24)
+	Frame.AutomaticSize = Enum.AutomaticSize.XY
+	Frame.BackgroundColor3 = Colors.Secondary
+	Frame.Parent = PropertyFrame
+
+	local DropdownIcon = NewInstance("ImageLabel")
+	DropdownIcon.Size = UDim2.fromOffset(8, 8)
+	DropdownIcon.AnchorPoint = NewV2(0.5, 0.5)
+	DropdownIcon.Position = UDim2.fromOffset(12, 12)
+	DropdownIcon.Image = "rbxasset://textures/ui/dropdown_arrow@2x.png"
+	DropdownIcon.BorderSizePixel = 0
+	DropdownIcon.BackgroundTransparency = 1
+	DropdownIcon.ScaleType = Enum.ScaleType.Fit
+	DropdownIcon.ImageColor3 = Colors.Text
+	DropdownIcon.Rotation = -90
+	DropdownIcon.Parent = Frame
+
+	local Dropdown = NewInstance("TextButton")
+	Dropdown.Size = UDim2.fromOffset(24, 24)
+	Dropdown.BorderSizePixel = 0
+	Dropdown.BackgroundTransparency = 1
+	Dropdown.Text = ""
+	Dropdown.Parent = Frame
+
+	local Name = NewInstance("TextLabel")
+	Name.Size = UDim2.new(1, -40, 0, 16)
+	Name.Position = UDim2.fromOffset(24, 4)
+	Name.Text = CategoryName
+	Name.TextSize = 8
+	Name.AutomaticSize = Enum.AutomaticSize.X
+	Name.BorderSizePixel = 0
+	Name.BackgroundTransparency = 1
+	Name.TextColor3 = Colors.Text
+	Name.TextXAlignment = Enum.TextXAlignment.Left
+	Name.Parent = Frame
+
+	local Box = NewInstance("Frame")
+	Box.Size = UDim2.new(1, -16, 0, 0)
+	Box.Position = UDim2.fromOffset(24, 24)
+	Box.AutomaticSize = Enum.AutomaticSize.XY
+	Box.BorderSizePixel = 0
+	Box.BackgroundTransparency = 1
+	Box.Parent = Frame
+
+	NewInstance("UIListLayout").Parent = Box
+
+	Frame.MouseEnter:Connect(function()
+		Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
+	end)
+
+	Frame.MouseLeave:Connect(function()
+		Frame.BackgroundColor3 = Colors.Secondary
+	end)
+
+	Dropdown.MouseButton1Down:Connect(function()
+		if not IsOpened then
+			local Properties = CategoryData
+			for Name, Data in Properties do
+				if Data.Tags and table.find(Data.Tags, "NotScriptable") then
+					continue
+				end
+				local Tab = LoadProperty(Data, Box, InstancePassthrough)
+				LoadedProperties[Tab] = true
+			end
+		else
+			for Item, _ in LoadedProperties do
+				Item:Remove()
+				LoadedProperties[Item] = nil
+			end
+		end
+		IsOpened = not IsOpened
+		DropdownIcon.Rotation = IsOpened and 0 or -90
+	end)
+
+	LoadedPropertyCategories[CategoryName] = Frame
+end
+
+function ClearProperties()
+	for IDX, Box in LoadedPropertyCategories do
+		Box:Remove()
+		LoadedPropertyCategories[IDX] = nil
+	end
+end
+
+function LoadProperties(Object: Instance)
+	if not AlmanacData[2] then
+		return
+	end
+
+	local Almanac = AlmanacData[1]
+
+	local Tree = Almanac[Object.ClassName]
+	local Categories = Tree.AllProperties
+
+	for CategoryName, CategoryData in Categories do
+		LoadCategory(CategoryData, CategoryName, Object)
+	end
+end
+
 local function CreateRoot(Root)
 	for _, Instance in pairs(Root:GetChildren()) do
 		RegisterInstance(Instance)
@@ -388,7 +740,7 @@ local function CreateExplorer(Root: Instance)
 	InstanceFrame.Parent = ExplorerBody
 	InstanceFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 	InstanceFrame.CanvasSize = UDim2.new()
-	
+
 	PropertyFrame = NewInstance("ScrollingFrame")
 	PropertyFrame.AnchorPoint = NewV2(1, 1)
 	PropertyFrame.Size = UDim2.new(1, 0, 1 - BrowserProportion, -16)
@@ -406,8 +758,8 @@ local function CreateExplorer(Root: Instance)
 	FilterBox.BackgroundColor3 = Colors.Primary
 	FilterBox.Parent = ExplorerBody
 
-	Instance.new("UIListLayout").Parent = InstanceFrame
-	Instance.new("UIListLayout").Parent = PropertyFrame
+	NewInstance("UIListLayout").Parent = InstanceFrame
+	NewInstance("UIListLayout").Parent = PropertyFrame
 
 	ExplorerBody.MouseEnter:Connect(function()
 		GestureHandle = UIS.InputChanged:Connect(ExplorerGestures)

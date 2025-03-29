@@ -71,4 +71,8 @@ function utils:matchpattern(Pattern: string, Target: string, CaseSensitive: bool
 	return string.find(Target, Pattern)
 end
 
+function utils:matchnumber(Text)
+	return tonumber("0" .. Text) or tonumber(Text)
+end
+
 return utils

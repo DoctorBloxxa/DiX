@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/DiX.luau", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/DoctorBloxxa/DiX/master/DiX.luau", true))()
