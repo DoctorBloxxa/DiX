@@ -503,19 +503,13 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 							Y = string.gsub(Y, " ", "")
 							Z = string.gsub(Z, " ", "")
 							
-							print(X,Y,Z)
-							
 							X = Utils:matchnumber(X)
 							Y = Utils:matchnumber(Y)
 							Z = Utils:matchnumber(Z)
 							
-							print(X,Y,Z)
-							
 							X = tonumber(X)
 							Y = tonumber(Y)
 							Z = tonumber(Z)
-							
-							warn(X,Y,Z)
 							
 							if X and Y and Z then InstancePassthrough[PropertyData.Name] = NewV3(X, Y, Z) end
 						end
