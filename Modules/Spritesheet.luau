@@ -46,14 +46,17 @@ return {
 	Player = 12,
 
 	Teams = 23,
-
 	Lighting = 13,
 	Players = 79,
+	StarterPlayer = 79,
 	ServerScriptService = 71,
 	ReplicatedStorage = 70,
 	ReplicatedFirst = 70,
 	ServerStorage = 69,
-
+	LocalizationService = 91,
+	NetworkClient = 15,
+	VoiceChatService = 136,
+	
 	PointLight = 13,
 	SpotLight = 13,
 	SurfaceLight = 13,
@@ -74,6 +77,10 @@ return {
 
 	Tool = 17,
 	HopperBin = 22,
+	StarterPack = 20,
+	StarterGear = 20,
+	Backpack = 20,
+	PlayerScripts = 78,
 
 	Explosion = 36,
 
@@ -89,6 +96,9 @@ return {
 	Motor6D = 106,
 	Attachment = 81,
 	WeldConstraint = 94,
+	NoCollisionConstraint = 105,
+	
+	BodyForce = 14,
 
 	Seat = 35,
 
@@ -110,4 +120,24 @@ return {
 	Frame = 48,
 	ScreenGui = 47,
 	StarterGui = 46,
+	PlayerGui = 46,
+	CoreGui = 46,
+	
+	UIGridLayout = 26,
+	UIListLayout = 26,
+	UIPageLayout = 26,
+	UITableLayout = 26,
+
+	Chat = 33,
+	Dialog = 62,
+	DialogChoice = 63,
+	
+	LineHandleAdornment = 107,
+	ImageHandleAdornment = 108,
+	CylinderHandleAdornment = 109,
+	ConeHandleAdornment = 110,
+	BoxHandleAdornment = 111,
+	SphereHandleAdornment = 112,
+	SelectionBox = 51,
+	SurfaceSelection = 52,
 }

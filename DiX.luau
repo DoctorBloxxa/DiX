@@ -55,6 +55,9 @@ local RegisteredInstancesEvents = {
 	NameChanged = {},
 }
 local CannotSelect = false
+local Interrupt = NewInstance("BindableEvent")
+InterruptOut = nil
+local SelectingProperty = false
 
 local function CreateBox(IsSelection: boolean)
 	local Box = NewInstance("SelectionBox")
@@ -76,6 +79,13 @@ local function Click3D()
 		Select(Hover3DBox.Adornee, true)
 	end
 end
+
+Interrupt.Event:Connect(function(Type, ...)
+	local Data = {...}
+	if Type == "Selection" then
+		InterruptOut = Data[1]
+	end
+end)
 
 function Unselect(Instance: Instance)
 	if Instance ~= nil then
@@ -102,6 +112,10 @@ end
 function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	if Selections[Instance] then
 		return
+	end
+	
+	if SelectingProperty then
+		Interrupt:Fire("Selection", Instance)
 	end
 
 	SelectionCount += 1
@@ -132,6 +146,8 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 		ClearProperties()
 		LoadProperties(Instance)
 	end
+	
+	Instance.Destroying:Connect(function() Unselect(Instance) end)
 end
 
 local function AdjustExplorer()
@@ -308,13 +324,14 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 	end)
 end
 
-function UnregisterInstance(Object: Instance, Container: Instance)
+function UnregisterInstance(Object: Instance, IsDeleted: boolean)
 	if RegisteredInstances[Object] then
 	else
 		return
 	end
-
-	Unselect(Object)
+	
+	if IsDeleted then Unselect(Object) end
+	
 	CloseInstance(Object)
 
 	RegisteredInstancesEvents.NameChanged[Object]:Disconnect()
@@ -539,7 +556,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			SetupCSVBox(UDim2, "%d, %d, %d, %d", {"X", "Scale"}, {"X", "Offset"}, {"Y", "Scale"}, {"Y", "Offset"})
 		end
 	elseif PropertyData.ValueType.Category == "Enum" then
-		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel") -- We'll get to actually editing enums later
+		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
 
 		local Opened = false
 		local ValidEnums = Enum[PropertyData.ValueType.Name]:GetEnumItems()
@@ -581,6 +598,39 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			ReflectValue()
 		end)
 
+		ReflectValue()
+	elseif PropertyData.ValueType.Category == "Class" then
+		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
+		local Selecting = false
+		
+		local function ReflectValue()
+			Box.Text = InstancePassthrough[PropertyData.Name] and InstancePassthrough[PropertyData.Name].Name or "nil"
+		end
+		
+		if not ReadOnly then
+			Box.MouseButton1Down:connect(function()
+				if Selecting == false and SelectingProperty == true then return end
+				
+				if not Selecting then
+					SelectingProperty = true
+					Interrupt.Event:Wait()
+					task.wait()
+					InstancePassthrough[PropertyData.Name] = InterruptOut
+					InterruptOut = nil
+					SelectingProperty = false
+				else
+					SelectingProperty = false
+				end
+				
+				Selecting = not Selecting
+				ReflectValue()
+			end)
+		end
+
+		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
+			ReflectValue()
+		end)
+		
 		ReflectValue()
 	end
 
