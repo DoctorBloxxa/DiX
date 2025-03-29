@@ -69,7 +69,7 @@ function utils:matchpattern(Pattern: string, Target: string, CaseSensitive: bool
 end
 
 function utils:matchnumber(Text)
-	return tostring(tonumber("0"..Text))
+	return tostring(tonumber("0"..Text)) or tostring(tonumber(Text))
 end
 
 return utils

@@ -72,20 +72,24 @@ end
 for Class, ClassData in Classes do
 	local Super = ClassData.SuperClass
 	local MergedProperties = ClassData.CategorizedProperties
-	
+
 	--print(Class, MergedProperties)
 
 	if Super ~= "<<<ROOT>>>" then
 		repeat
 			local SuperTree = Classes[Super]
 			Super = SuperTree.SuperClass
-			
-			if Super == "<<<ROOT>>>" or Super == Classes[Super].SuperClass then break end
-			
+
+			if Super == "<<<ROOT>>>" or Super == Classes[Super].SuperClass then
+				break
+			end
+
 			--warn(Super, Classes[Super].SuperClass)
 
 			for Category, Properties in pairs(SuperTree.CategorizedProperties) do
-				if MergedProperties[Category]==nil then MergedProperties[Category] = {} end
+				if MergedProperties[Category] == nil then
+					MergedProperties[Category] = {}
+				end
 
 				--warn(Category, Properties)
 
@@ -93,11 +97,11 @@ for Class, ClassData in Classes do
 					MergedProperties[Category][Property] = Data
 				end
 			end
-			--game:GetService("RunService").Heartbeat:Wait()
+		--game:GetService("RunService").Heartbeat:Wait()
 		until false
 	end
 
 	ClassData.AllProperties = MergedProperties
 end
 
-return {Classes, APILoaded}
+return { Classes, APILoaded }

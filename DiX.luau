@@ -52,7 +52,7 @@ local RegisteredInstances = {}
 local RegisteredInstancesEvents = {
 	ChildAdded = {},
 	ChildRemoved = {},
-	NameChanged = {}
+	NameChanged = {},
 }
 local CannotSelect = false
 
@@ -302,7 +302,6 @@ local function RegisterInstance(Object: Instance, Container: Instance, Basic: bo
 			Frame.BackgroundColor3 = Colors.Hover:Lerp(Frame.BackgroundColor3, 0.75)
 		end
 	end)
-	
 
 	RegisteredInstancesEvents.NameChanged[Object] = Object:GetPropertyChangedSignal("Name"):Connect(function()
 		Name.Text = Object.Name
@@ -317,7 +316,7 @@ function UnregisterInstance(Object: Instance, Container: Instance)
 
 	Unselect(Object)
 	CloseInstance(Object)
-	
+
 	RegisteredInstancesEvents.NameChanged[Object]:Disconnect()
 	RegisteredInstancesEvents.NameChanged[Object] = nil
 
@@ -417,8 +416,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
-					if PressedEnter and Utils:matchnumber(Box.Text) then
-						InstancePassthrough[PropertyData.Name] = Utils:matchnumber(Box.Text)
+					if PressedEnter and tonumber(Utils:matchnumber(Box.Text)) then
+						InstancePassthrough[PropertyData.Name] = tonumber(Utils:matchnumber(Box.Text))
 					end
 
 					Box.Text = InstancePassthrough[PropertyData.Name]
@@ -426,7 +425,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			end
 
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
-				if Box:IsFocused() then
+				if not ReadOnly and Box:IsFocused() then
 					Box.FocusLost:Wait()
 				end
 				Box.Text = InstancePassthrough[PropertyData.Name]
@@ -446,7 +445,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			end
 
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
-				if Box:IsFocused() then
+				if not ReadOnly and Box:IsFocused() then
 					Box.FocusLost:Wait()
 				end
 				Box.Text = InstancePassthrough[PropertyData.Name]
@@ -478,10 +477,10 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
 		local ValueType = PropertyData.ValueType.Name
-		
+
 		if ValueType == "Vector3" then
 			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
-			
+
 			local function ReflectValue()
 				local Vector = InstancePassthrough[PropertyData.Name]
 				Box.Text = string.format("%d, %d, %d", Vector.X, Vector.Y, Vector.Z)
@@ -489,23 +488,38 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 			if not ReadOnly then
 				Box.ClearTextOnFocus = false
-				
+
 				Box.FocusLost:connect(function(PressedEnter)
 					if PressedEnter then
 						local Components = string.split(Box.Text, ",")
 						local X = Components[1]
 						local Y = Components[2]
 						local Z = Components[3]
-						
-						if X and Y and Z and Utils:matchnumber(X) and Utils:matchnumber(Y) and Utils:matchnumber(Z) then
-							warn(X, Y, Z)
+
+						-- stylua: ignore start
+						if X and Y and Z then
+							
+							X = string.gsub(X, " ", "")
+							Y = string.gsub(Y, " ", "")
+							Z = string.gsub(Z, " ", "")
+							
+							print(X,Y,Z)
 							
 							X = Utils:matchnumber(X)
 							Y = Utils:matchnumber(Y)
 							Z = Utils:matchnumber(Z)
 							
-							InstancePassthrough[PropertyData.Name] = NewV3(X, Y, Z)
+							print(X,Y,Z)
+							
+							X = tonumber(X)
+							Y = tonumber(Y)
+							Z = tonumber(Z)
+							
+							warn(X,Y,Z)
+							
+							if X and Y and Z then InstancePassthrough[PropertyData.Name] = NewV3(X, Y, Z) end
 						end
+						-- stylua: ignore end
 					end
 
 					ReflectValue()
@@ -513,12 +527,12 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			end
 
 			Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
-				if Box:IsFocused() then
+				if not ReadOnly and Box:IsFocused() then
 					Box.FocusLost:Wait()
 				end
 				ReflectValue()
 			end)
-			
+
 			ReflectValue()
 		end
 	elseif PropertyData.ValueType.Category == "Enum" then
