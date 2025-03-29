@@ -20,5 +20,3 @@ The icons used are the legacy ones. There's no way around that (without resortin
 There's also the fact that this is expected to be run at a security context 2 (LocalScript). 
 
 Roblox's scrollingframe starts getting laggy once there's a lot of loaded items. I can't do much about it.
-
-I also considered adding a watchdog so you can play while it's loading children. However, I'm not sure about race conditions and requires further testing.

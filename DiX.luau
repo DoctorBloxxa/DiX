@@ -35,7 +35,7 @@ local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
 local AlmanacData = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
-local Quartermaster = Utils:watchdog(1 / 32, wait)
+local Quartermaster = Utils:watchdog(1, wait)
 
 local function GetInstanceIcon(ClassName: string)
 	return Vector2.new(16, 0) * (InstanceIcons[ClassName] or 0)
@@ -387,9 +387,9 @@ function OpenInstance(Object: Instance)
 		UnregisterInstance(Child)
 	end)
 
-	--Quartermaster:Reset()
+	Quartermaster:Reset()
 	for _, Child in pairs(Object:GetChildren()) do
-		--Quartermaster:Tick()
+		Quartermaster:Tick()
 		RegisterInstance(Child, Handle)
 	end
 end
@@ -507,25 +507,27 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			local Params = { ... }
 
 			local function ReflectValue()
-					local Object = InstancePassthrough[PropertyData.Name]
+				local Object = InstancePassthrough[PropertyData.Name]
 
-					local Components = {}
-					for IDX, Parameter in Params do
-						if typeof(Parameter) == "table" then
-							local Setting = Object
+				local Components = {}
+				for IDX, Parameter in Params do
+					if typeof(Parameter) == "table" then
+						local Setting = Object
 
-							for _, Subparameter in Parameter do
-								Setting = Setting[Subparameter]
-							end
+						for _, Subparameter in Parameter do
+							Setting = Setting[Subparameter]
+						end
 
-							Components[IDX] = Setting
-						else
-							Components[IDX] = Object[Parameter]
-							if ValueType == "Color3" then Components[IDX]*=255 end
+						Components[IDX] = Setting
+					else
+						Components[IDX] = Object[Parameter]
+						if ValueType == "Color3" then
+							Components[IDX] *= 255
 						end
 					end
+				end
 
-					Box.Text = string.format(stringf, table.unpack(Components))
+				Box.Text = string.format(stringf, table.unpack(Components))
 			end
 
 			if not ReadOnly then
