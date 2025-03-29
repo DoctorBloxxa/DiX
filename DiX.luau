@@ -9,9 +9,11 @@ local Colors = {
 
 local BindTracker = {
 	AdjustProportions = false,
+	AdjustGUI = false,
 	MultiSelect = false,
 	Interact3D = false,
 	DirectInteract = false,
+	Mod = false,
 }
 
 local function downloadstring(URL: string)
@@ -164,15 +166,27 @@ local function AdjustExplorer()
 	FilterBox.Position = UDim2.new(1, 0, BrowserProportion, 0)
 end
 
+local function AdjustGui()
+	ExplorerBody.Size = UDim2.new(0, Mouse.ViewSizeX - Mouse.X , 1, 0)
+end
+
 local function ExplorerGestures(Input: InputObject, GUIHook: boolean)
-	if Input.UserInputType == Enum.UserInputType.MouseMovement and BindTracker.AdjustProportions then
-		AdjustExplorer()
+	if Input.UserInputType == Enum.UserInputType.MouseMovement then
+		if BindTracker.AdjustProportions then
+			AdjustExplorer()
+		end
+		
+		if BindTracker.AdjustGUI then
+			AdjustGui()
+			
+			BindTracker.AdjustGUI = BindTracker.Mod and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton3)
+		end
 	end
 end
 
 local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 	if Input.UserInputType == Enum.UserInputType.MouseButton3 then
-		if BindTracker.MultiSelect and Input.UserInputState == Enum.UserInputState.Begin then
+		if BindTracker.MultiSelect and Input.UserInputState == Enum.UserInputState.Begin and not BindTracker.Mod then
 			BindTracker.Interact3D = not BindTracker.Interact3D
 
 			if BindTracker.Interact3D then
@@ -184,18 +198,25 @@ local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 				Click3DHandle:Disconnect()
 				Hover3DBox:Remove()
 			end
-		else
+		elseif not BindTracker.Mod then
 			BindTracker.AdjustProportions = Input.UserInputState == Enum.UserInputState.Begin
 
 			if BindTracker.AdjustProportions then
 				AdjustExplorer()
 			end
+		else
+			AdjustGui()
+			BindTracker.AdjustGUI = Input.UserInputState == Enum.UserInputState.Begin
+			
+			if BindTracker.AdjustGUI==false then Interrupt:Fire() end
 		end
 	elseif Input.UserInputType == Enum.UserInputType.Keyboard then
 		if Input.KeyCode == Enum.KeyCode.LeftControl then
 			BindTracker.MultiSelect = Input.UserInputState == Enum.UserInputState.Begin
 		elseif Input.KeyCode == Enum.KeyCode.LeftAlt and Input.UserInputState == Enum.UserInputState.Begin then
 			BindTracker.DirectInteract = not BindTracker.DirectInteract
+		elseif Input.KeyCode == Enum.KeyCode.LeftShift then
+			BindTracker.Mod = Input.UserInputState == Enum.UserInputState.Begin
 		end
 	end
 end
@@ -839,6 +860,10 @@ local function CreateExplorer(Root: Instance)
 	end)
 
 	ExplorerBody.MouseLeave:Connect(function()
+		if BindTracker.AdjustGUI then
+			Interrupt.Event:Wait()
+		end
+		
 		GestureHandle:Disconnect()
 		EnableHandle:Disconnect()
 		DisableHandle:Disconnect()
@@ -874,7 +899,7 @@ local function CreateExplorer(Root: Instance)
 	end)
 	
 	Mouse.KeyDown:Connect(function(Key)
-		if Key == Enum.KeyCode.Semicolon then
+		if Key == ";" then
 			ExplorerBody.Visible = not ExplorerBody.Visible
 		end
 	end)
