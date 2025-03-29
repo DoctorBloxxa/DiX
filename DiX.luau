@@ -394,7 +394,7 @@ end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Hook
-	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) or  PropertyData.Security.Write~="RobloxSecurity"
+	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) or PropertyData.Security.Write=="RobloxSecurity"
 	local CanRead = (PropertyData.Security.Read and PropertyData.Security.Read~="RobloxSecurity")
 
 	local Frame = NewInstance("Frame")
