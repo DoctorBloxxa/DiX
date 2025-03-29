@@ -556,7 +556,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		elseif ValueType == "UDim2" then
 			SetupCSVBox(UDim2, "new", "%d, %d, %d, %d", {"X", "Scale"}, {"X", "Offset"}, {"Y", "Scale"}, {"Y", "Offset"})
 		elseif ValueType == "Color3" then
-			SetupCSVBox(UDim2, "fromRGB", "%d, %d, %d", "R", "G", "B")
+			SetupCSVBox(Color3, "fromRGB", "%d, %d, %d", "R", "G", "B")
 		end
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
