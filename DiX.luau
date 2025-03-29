@@ -387,9 +387,7 @@ function OpenInstance(Object: Instance)
 		UnregisterInstance(Child)
 	end)
 
-	Quartermaster:Reset()
 	for _, Child in pairs(Object:GetChildren()) do
-		Quartermaster:Tick()
 		RegisterInstance(Child, Handle)
 	end
 end
