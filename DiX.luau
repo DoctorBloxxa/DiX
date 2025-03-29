@@ -872,6 +872,12 @@ local function CreateExplorer(Root: Instance)
 			Quartermaster:Tick()
 		end
 	end)
+	
+	Mouse.KeyDown:Connect(function(Key)
+		if Key == Enum.KeyCode.Semicolon then
+			ExplorerBody.Visible = not ExplorerBody.Visible
+		end
+	end)
 
 	CreateRoot(Root)
 end
