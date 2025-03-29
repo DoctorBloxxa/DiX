@@ -477,13 +477,31 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
 		local ValueType = PropertyData.ValueType.Name
-
-		if ValueType == "Vector3" then
+		
+		local function SetupCSVBox(Class: any, stringf: string, ...)
 			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
-
+			local Params = {...}
+			
 			local function ReflectValue()
-				local Vector = InstancePassthrough[PropertyData.Name]
-				Box.Text = string.format("%d, %d, %d", Vector.X, Vector.Y, Vector.Z)
+				local Object = InstancePassthrough[PropertyData.Name]
+				
+				local Components = {}
+				for IDX, Parameter in Params do
+					
+					if typeof(Parameter) == "table" then		
+						local Setting = Object
+						
+						for _, Subparameter in Parameter do
+							Setting = Setting[Subparameter]
+						end
+						
+						Components[IDX] = Setting
+					else
+						Components[IDX] = Object[Parameter]
+					end
+				end
+				
+				Box.Text = string.format(stringf, table.unpack(Components))
 			end
 
 			if not ReadOnly then
@@ -492,28 +510,11 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 				Box.FocusLost:connect(function(PressedEnter)
 					if PressedEnter then
 						local Components = string.split(Box.Text, ",")
-						local X = Components[1]
-						local Y = Components[2]
-						local Z = Components[3]
-
-						-- stylua: ignore start
-						if X and Y and Z then
-							
-							X = string.gsub(X, " ", "")
-							Y = string.gsub(Y, " ", "")
-							Z = string.gsub(Z, " ", "")
-							
-							X = Utils:matchnumber(X)
-							Y = Utils:matchnumber(Y)
-							Z = Utils:matchnumber(Z)
-							
-							X = tonumber(X)
-							Y = tonumber(Y)
-							Z = tonumber(Z)
-							
-							if X and Y and Z then InstancePassthrough[PropertyData.Name] = NewV3(X, Y, Z) end
+						for IDX, Component in Components do
+							Components[IDX] = tonumber(Utils:matchnumber(Component:gsub(" ", "")))
 						end
-						-- stylua: ignore end
+
+						InstancePassthrough[PropertyData.Name] = Class.new(table.unpack(Components))
 					end
 
 					ReflectValue()
@@ -528,6 +529,14 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 			end)
 
 			ReflectValue()
+		end
+
+		if ValueType == "Vector3" then
+			SetupCSVBox(Vector3, "%d, %d, %d", "X", "Y", "Z")
+		elseif ValueType == "Vector2" then
+			SetupCSVBox(Vector2, "%d, %d", "X", "Y")
+		elseif ValueType == "UDim2" then
+			SetupCSVBox(UDim2, "%d, %d, %d, %d", {"X", "Scale"}, {"X", "Offset"}, {"Y", "Scale"}, {"Y", "Offset"})
 		end
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel") -- We'll get to actually editing enums later
