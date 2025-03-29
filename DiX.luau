@@ -416,8 +416,8 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
-					if PressedEnter and tonumber(Utils:matchnumber(Box.Text)) then
-						InstancePassthrough[PropertyData.Name] = tonumber(Utils:matchnumber(Box.Text))
+					if PressedEnter and Utils:matchnumber(Box.Text) then
+						InstancePassthrough[PropertyData.Name] = Utils:matchnumber(Box.Text)
 					end
 
 					Box.Text = InstancePassthrough[PropertyData.Name]
