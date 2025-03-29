@@ -854,6 +854,16 @@ local function CreateExplorer(Root: Instance)
 	NewInstance("UIListLayout").Parent = PropertyFrame
 
 	ExplorerBody.MouseEnter:Connect(function()
+		if GestureHandle then
+			GestureHandle:Disconnect()
+		end
+		if EnableHandle then
+			EnableHandle:Disconnect()
+		end
+		if DisableHandle then
+			DisableHandle:Disconnect()
+		end
+
 		GestureHandle = UIS.InputChanged:Connect(ExplorerGestures)
 		EnableHandle = UIS.InputBegan:Connect(ExplorerEnable)
 		DisableHandle = UIS.InputEnded:Connect(ExplorerEnable)
