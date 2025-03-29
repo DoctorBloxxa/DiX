@@ -37,7 +37,7 @@ local Repo = "https://raw.githubusercontent.com/DoctorBloxxa/DiX/canary/"
 local InstanceIcons = StudioMode and require(script:WaitForChild("Spritesheet")) or downloadstring(Repo .. "Modules/Spritesheet.luau")
 local Utils = StudioMode and require(script:WaitForChild("Utils")) or downloadstring(Repo .. "Modules/Utils.luau")
 local AlmanacData = StudioMode and require(script:WaitForChild("Almanac")) or downloadstring(Repo .. "Modules/Almanac.luau")
-local Quartermaster = Utils:watchdog(1/24, wait)
+local Quartermaster = Utils:watchdog(1 / 24, wait)
 
 local function GetInstanceIcon(ClassName: string)
 	return Vector2.new(16, 0) * (InstanceIcons[ClassName] or 0)
@@ -167,26 +167,24 @@ local function AdjustExplorer()
 end
 
 local function AdjustGui()
-	ExplorerBody.Size = UDim2.new(0, Mouse.ViewSizeX - Mouse.X , 1, 0)
+	ExplorerBody.Size = UDim2.new(0, Mouse.ViewSizeX - Mouse.X, 1, 0)
 end
 
 local function ExplorerGestures(Input: InputObject, GUIHook: boolean)
 	if Input.UserInputType == Enum.UserInputType.MouseMovement then
-		if BindTracker.AdjustProportions then
-			AdjustExplorer()
-		end
-		
 		if BindTracker.AdjustGUI then
 			AdjustGui()
-			
+
 			BindTracker.AdjustGUI = BindTracker.Mod and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton3)
+		elseif BindTracker.AdjustProportions then
+			AdjustExplorer()
 		end
 	end
 end
 
 local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 	if Input.UserInputType == Enum.UserInputType.MouseButton3 then
-		if BindTracker.MultiSelect and Input.UserInputState == Enum.UserInputState.Begin and not BindTracker.Mod then
+		if BindTracker.MultiSelect and Input.UserInputState == Enum.UserInputState.Begin then
 			BindTracker.Interact3D = not BindTracker.Interact3D
 
 			if BindTracker.Interact3D then
@@ -206,9 +204,11 @@ local function ExplorerEnable(Input: InputObject, GUIHook: boolean)
 			end
 		else
 			AdjustGui()
-			BindTracker.AdjustGUI = Input.UserInputState == Enum.UserInputState.Begin
-			
-			if BindTracker.AdjustGUI==false then Interrupt:Fire() end
+			BindTracker.AdjustGUI = Input.UserInputState == Enum.UserInputState.Begin and BindTracker.Mod
+
+			if BindTracker.AdjustGUI == false then
+				Interrupt:Fire()
+			end
 		end
 	elseif Input.UserInputType == Enum.UserInputType.Keyboard then
 		if Input.KeyCode == Enum.KeyCode.LeftControl then
@@ -415,8 +415,8 @@ end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Hook
-	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) or PropertyData.Security.Write=="RobloxSecurity"
-	local CanRead = (PropertyData.Security.Read and PropertyData.Security.Read~="RobloxSecurity")
+	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) or PropertyData.Security.Write == "RobloxSecurity"
+	local CanRead = (PropertyData.Security.Read and PropertyData.Security.Read ~= "RobloxSecurity")
 
 	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
@@ -450,11 +450,11 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 
 		return Box
 	end
-	
-	if not CanRead then 
+
+	if not CanRead then
 		local Box = CreateValueBox("Frame")
 		Box.BackgroundColor3 = Color3.fromRGB(219, 0, 164)
-		
+
 		Frame.Visible = false
 
 		return Frame, Hook
@@ -863,12 +863,14 @@ local function CreateExplorer(Root: Instance)
 		if BindTracker.AdjustGUI then
 			Interrupt.Event:Wait()
 		end
-		
+
 		GestureHandle:Disconnect()
 		EnableHandle:Disconnect()
 		DisableHandle:Disconnect()
 
 		BindTracker.AdjustProportions = false
+		BindTracker.AdjustGUI = false
+		BindTracker.Mod = false
 	end)
 
 	SearchBox.FocusLost:Connect(function(IsEnter)
@@ -897,7 +899,7 @@ local function CreateExplorer(Root: Instance)
 			Quartermaster:Tick()
 		end
 	end)
-	
+
 	Mouse.KeyDown:Connect(function(Key)
 		if Key == ";" then
 			ExplorerBody.Visible = not ExplorerBody.Visible
