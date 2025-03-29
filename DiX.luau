@@ -394,7 +394,8 @@ end
 
 local function LoadProperty(PropertyData: table, Parent: Instance, InstancePassthrough: Instance)
 	local Hook
-	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly"))
+	local ReadOnly = (PropertyData.Tags and table.find(PropertyData.Tags, "ReadOnly")) or  PropertyData.Security.Write~="RobloxSecurity"
+	local CanRead = (PropertyData.Security.Read and PropertyData.Security.Read~="RobloxSecurity")
 
 	local Frame = NewInstance("Frame")
 	Frame.Size = UDim2.new(1, 0, 0, 16)
@@ -427,6 +428,15 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		Box.Parent = Name
 
 		return Box
+	end
+	
+	if not CanRead then 
+		local Box = CreateValueBox("Frame")
+		Box.BackgroundColor3 = Color3.fromRGB(219, 0, 164)
+		
+		Frame.Visible = false
+
+		return Frame, Hook
 	end
 
 	if PropertyData.ValueType.Category == "Primitive" then
