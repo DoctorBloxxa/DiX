@@ -53,10 +53,10 @@ return {
 	ReplicatedStorage = 70,
 	ReplicatedFirst = 70,
 	ServerStorage = 69,
-	LocalizationService = 91,
+	LocalizationService = 92,
 	NetworkClient = 15,
 	VoiceChatService = 136,
-	
+
 	PointLight = 13,
 	SpotLight = 13,
 	SurfaceLight = 13,
@@ -97,7 +97,7 @@ return {
 	Attachment = 81,
 	WeldConstraint = 94,
 	NoCollisionConstraint = 105,
-	
+
 	BodyForce = 14,
 
 	Seat = 35,
@@ -122,7 +122,7 @@ return {
 	StarterGui = 46,
 	PlayerGui = 46,
 	CoreGui = 46,
-	
+
 	UIGridLayout = 26,
 	UIListLayout = 26,
 	UIPageLayout = 26,
@@ -131,7 +131,7 @@ return {
 	Chat = 33,
 	Dialog = 62,
 	DialogChoice = 63,
-	
+
 	LineHandleAdornment = 107,
 	ImageHandleAdornment = 108,
 	CylinderHandleAdornment = 109,

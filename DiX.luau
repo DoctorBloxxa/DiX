@@ -81,7 +81,7 @@ local function Click3D()
 end
 
 Interrupt.Event:Connect(function(Type, ...)
-	local Data = {...}
+	local Data = { ... }
 	if Type == "Selection" then
 		InterruptOut = Data[1]
 	end
@@ -95,7 +95,10 @@ function Unselect(Instance: Instance)
 
 		Selections[Instance]:Remove()
 		Selections[Instance] = nil
-		RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
+
+		if RegisteredInstances[Instance] then
+			RegisteredInstances[Instance].Parent.BackgroundColor3 = Colors.Primary
+		end
 
 		SelectionCount -= 1
 	else
@@ -113,7 +116,7 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 	if Selections[Instance] then
 		return
 	end
-	
+
 	if SelectingProperty then
 		Interrupt:Fire("Selection", Instance)
 	end
@@ -146,8 +149,10 @@ function Select(Instance: Instance, Scroll: boolean, Basic: boolean)
 		ClearProperties()
 		LoadProperties(Instance)
 	end
-	
-	Instance.Destroying:Connect(function() Unselect(Instance) end)
+
+	Instance.Destroying:Connect(function()
+		Unselect(Instance)
+	end)
 end
 
 local function AdjustExplorer()
@@ -329,9 +334,11 @@ function UnregisterInstance(Object: Instance, IsDeleted: boolean)
 	else
 		return
 	end
-	
-	if IsDeleted then Unselect(Object) end
-	
+
+	if IsDeleted then
+		Unselect(Object)
+	end
+
 	CloseInstance(Object)
 
 	RegisteredInstancesEvents.NameChanged[Object]:Disconnect()
@@ -427,14 +434,14 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	if PropertyData.ValueType.Category == "Primitive" then
 		local ValueType = PropertyData.ValueType.Name
 
-		if ValueType == "float" then
+		if ValueType == "float" or ValueType == "int" or ValueType == "int64" then
 			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
 			Box.Text = InstancePassthrough[PropertyData.Name]
 
 			if not ReadOnly then
 				Box.FocusLost:connect(function(PressedEnter)
 					if PressedEnter and Utils:matchnumber(Box.Text) then
-						InstancePassthrough[PropertyData.Name] = Utils:matchnumber(Box.Text)
+						InstancePassthrough[PropertyData.Name] = ValueType == "float" and Utils:matchnumber(Box.Text) or math.floor(Utils:matchnumber(Box.Text))
 					end
 
 					Box.Text = InstancePassthrough[PropertyData.Name]
@@ -494,30 +501,29 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		end
 	elseif PropertyData.ValueType.Category == "DataType" then
 		local ValueType = PropertyData.ValueType.Name
-		
+
 		local function SetupCSVBox(Class: any, stringf: string, ...)
 			local Box = CreateValueBox(not ReadOnly and "TextBox" or "TextLabel")
-			local Params = {...}
-			
+			local Params = { ... }
+
 			local function ReflectValue()
 				local Object = InstancePassthrough[PropertyData.Name]
-				
+
 				local Components = {}
 				for IDX, Parameter in Params do
-					
-					if typeof(Parameter) == "table" then		
+					if typeof(Parameter) == "table" then
 						local Setting = Object
-						
+
 						for _, Subparameter in Parameter do
 							Setting = Setting[Subparameter]
 						end
-						
+
 						Components[IDX] = Setting
 					else
 						Components[IDX] = Object[Parameter]
 					end
 				end
-				
+
 				Box.Text = string.format(stringf, table.unpack(Components))
 			end
 
@@ -553,7 +559,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		elseif ValueType == "Vector2" then
 			SetupCSVBox(Vector2, "%d, %d", "X", "Y")
 		elseif ValueType == "UDim2" then
-			SetupCSVBox(UDim2, "%d, %d, %d, %d", {"X", "Scale"}, {"X", "Offset"}, {"Y", "Scale"}, {"Y", "Offset"})
+			SetupCSVBox(UDim2, "%d, %d, %d, %d", { "X", "Scale" }, { "X", "Offset" }, { "Y", "Scale" }, { "Y", "Offset" })
 		end
 	elseif PropertyData.ValueType.Category == "Enum" then
 		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
@@ -602,15 +608,17 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 	elseif PropertyData.ValueType.Category == "Class" then
 		local Box = CreateValueBox(not ReadOnly and "TextButton" or "TextLabel")
 		local Selecting = false
-		
+
 		local function ReflectValue()
 			Box.Text = InstancePassthrough[PropertyData.Name] and InstancePassthrough[PropertyData.Name].Name or "nil"
 		end
-		
+
 		if not ReadOnly then
 			Box.MouseButton1Down:connect(function()
-				if Selecting == false and SelectingProperty == true then return end
-				
+				if Selecting == false and SelectingProperty == true then
+					return
+				end
+
 				if not Selecting then
 					SelectingProperty = true
 					Interrupt.Event:Wait()
@@ -621,7 +629,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 				else
 					SelectingProperty = false
 				end
-				
+
 				Selecting = not Selecting
 				ReflectValue()
 			end)
@@ -630,7 +638,7 @@ local function LoadProperty(PropertyData: table, Parent: Instance, InstancePasst
 		Hook = InstancePassthrough:GetPropertyChangedSignal(PropertyData.Name):Connect(function()
 			ReflectValue()
 		end)
-		
+
 		ReflectValue()
 	end
 
@@ -838,6 +846,7 @@ local function CreateExplorer(Root: Instance)
 			return
 		end
 
+		Quartermaster:Reset()
 		for _, Instance in pairs(game:GetDescendants()) do
 			if Utils:matchpattern(Pattern, Instance.Name) then
 				local Ancestry = Utils:GetAncestry(Instance, Root)
@@ -846,6 +855,8 @@ local function CreateExplorer(Root: Instance)
 					RegisterInstance(Item, RegisteredInstances[Item.Parent] or InstanceFrame, true)
 				end
 			end
+
+			Quartermaster:Tick()
 		end
 	end)
 
